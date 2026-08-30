@@ -1,19 +1,19 @@
 # macOS dotfiles
 
-Ambiente de desenvolvimento macOS explícito, rápido e reproduzível. O repositório usa chezmoi para gerenciar Zsh, Git, Starship e bootstrap de ferramentas sem frameworks grandes de shell e sem armazenar credenciais.
+An explicit, fast, and reproducible macOS development environment. This repository uses chezmoi to manage Zsh, Git, Starship, and tool bootstrapping without large shell frameworks or stored credentials.
 
-## Ferramentas
+## Tools
 
-- macOS, Zsh e Homebrew
-- chezmoi, Git e GitHub CLI
-- Starship, zoxide, fzf, eza, bat e ripgrep
-- Node.js 24, pnpm e Angular CLI
-- Java 21 LTS e Maven
-- Docker, Podman, VS Code e IntelliJ IDEA
+- macOS, Zsh, and Homebrew
+- chezmoi, Git, and GitHub CLI
+- Starship, zoxide, fzf, eza, bat, and ripgrep
+- Node.js 24, pnpm, and Angular CLI
+- Java 21 LTS and Maven
+- Docker, Podman, VS Code, and IntelliJ IDEA
 
-Angular CLI e Codex CLI atualmente são pacotes npm globais e não são instalados automaticamente pelo Brewfile. Podman também não é instalado pelo Brewfile porque a instalação atual não veio do Homebrew.
+Angular CLI and Codex CLI are currently global npm packages and are not installed automatically by the Brewfile. Podman is also excluded from the Brewfile because the current installation did not come from Homebrew.
 
-## Estrutura
+## Structure
 
 ```text
 .
@@ -40,75 +40,75 @@ Angular CLI e Codex CLI atualmente são pacotes npm globais e não são instalad
     └── macos-defaults.sh
 ```
 
-Arquivos com prefixo `dot_` são aplicados ao home pelo chezmoi. `README.md`, `Brewfile` e `scripts/` ficam apenas no source state por meio de `.chezmoiignore`.
+Files prefixed with `dot_` are applied to the home directory by chezmoi. `README.md`, `Brewfile`, and `scripts/` remain in the source state through `.chezmoiignore`.
 
-## Validação automática
+## Automated validation
 
-O workflow `.github/workflows/validate.yml` roda em macOS a cada push e pull request. Ele verifica estrutura obrigatória, sintaxe Bash/Zsh/Git/Brewfile, secrets, caminhos específicos de máquina e uma aplicação isolada do chezmoi em diretório temporário.
+The `.github/workflows/validate.yml` workflow runs on macOS for every push and pull request. It checks the required structure, Bash/Zsh/Git/Brewfile syntax, secrets, machine-specific paths, and an isolated chezmoi application in a temporary directory.
 
-## Requisitos
+## Requirements
 
-- Mac com acesso à internet
-- usuário com permissão para instalar Homebrew
-- Command Line Tools do Xcode quando solicitado pelo instalador do Homebrew
-- conta GitHub para clonar o repositório e configurar Git/SSH
+- A Mac with internet access
+- A user allowed to install Homebrew
+- Xcode Command Line Tools when requested by the Homebrew installer
+- A GitHub account for cloning the repository and configuring Git/SSH
 
-## Instalação em um Mac novo
+## Installing on a new Mac
 
-O instalador standalone do chezmoi permite iniciar sem Homebrew:
+The standalone chezmoi installer lets you start without Homebrew:
 
 ```sh
 sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply RaioViajante
 ```
 
-Se o chezmoi já estiver instalado:
+If chezmoi is already installed:
 
 ```sh
 chezmoi init --apply RaioViajante
 ```
 
-Durante o primeiro apply, os scripts:
+During the first apply, the scripts:
 
-1. instalam Homebrew se estiver ausente;
-2. executam o Brewfile;
-3. aplicam os dotfiles;
-4. criam diretórios locais e um `local.gitconfig` vazio quando necessário.
+1. install Homebrew when it is missing;
+2. apply the Brewfile;
+3. apply the dotfiles;
+4. create local directories and an empty `local.gitconfig` when needed.
 
-## Git local
+## Local Git identity
 
-O arquivo versionado `dot_gitconfig` contém somente comportamento portável. Nome e e-mail devem ser configurados por máquina em `~/.config/git/local.gitconfig`:
+The versioned `dot_gitconfig` contains only portable Git behavior. Configure your name and email on each machine in `~/.config/git/local.gitconfig`:
 
 ```gitconfig
 [user]
-    name = SEU_NOME
-    email = SEU_EMAIL_VERIFICADO_OU_NOREPLY
+    name = YOUR_NAME
+    email = YOUR_VERIFIED_OR_NOREPLY_EMAIL
 ```
 
-Confirme a origem:
+Confirm where the identity comes from:
 
 ```sh
 git config --global --includes --show-origin --get-regexp '^user\.'
 ```
 
-`~/.config/git/local.gitconfig` não é copiado para o source state e nunca deve ser commitado.
+`~/.config/git/local.gitconfig` is never copied into the source state and must never be committed.
 
-## GitHub CLI e SSH por máquina
+## GitHub CLI and per-machine SSH setup
 
-Autenticação e chaves SSH não são restauradas pelos dotfiles. Em cada Mac, faça login pelo navegador:
+Authentication and SSH keys are not restored by these dotfiles. On each Mac, sign in through the browser:
 
 ```sh
 gh auth login --hostname github.com --web --git-protocol ssh --skip-ssh-key
 gh auth status
 ```
 
-Se ainda não houver uma chave dedicada, crie uma com passphrase e registre apenas a pública:
+If the machine does not have a dedicated key yet, create one with a passphrase and register only its public key:
 
 ```sh
 ssh-keygen -t ed25519 -a 100 -f ~/.ssh/id_ed25519_raioviajante
 gh ssh-key add ~/.ssh/id_ed25519_raioviajante.pub --type authentication --title "macOS development"
 ```
 
-Crie localmente `~/.ssh/config`, com permissão `600`:
+Create `~/.ssh/config` locally and set its permissions to `600`:
 
 ```sshconfig
 Host github.com
@@ -120,17 +120,17 @@ Host github.com
   UseKeychain yes
 ```
 
-Valide com `ssh -T git@github.com`. Nem o SSH config, nem as chaves pública/privada, nem o keyring do GitHub CLI fazem parte deste repositório.
+Validate it with `ssh -T git@github.com`. The SSH config, public/private keys, and GitHub CLI keyring are intentionally excluded from this repository.
 
-Para recuperar os CLIs npm globais usados neste ambiente, instale-os conscientemente após o Node estar disponível:
+To restore the global npm CLIs used in this environment after Node becomes available:
 
 ```sh
 npm install --global @angular/cli @openai/codex
 ```
 
-## Uso do chezmoi
+## Using chezmoi
 
-Revisar e aplicar alterações recebidas:
+Review and apply incoming changes:
 
 ```sh
 chezmoi diff
@@ -138,13 +138,13 @@ chezmoi apply
 chezmoi update
 ```
 
-`chezmoi update` atualiza o repositório fonte e aplica as mudanças. Para aplicar configurações sem executar o Brewfile naquele ciclo:
+`chezmoi update` updates the source repository and applies its changes. To apply configuration without running the Brewfile during that cycle:
 
 ```sh
 DOTFILES_SKIP_BREW_BUNDLE=1 chezmoi apply
 ```
 
-Editar uma configuração gerenciada:
+Edit a managed configuration:
 
 ```sh
 chezmoi edit ~/.zshrc
@@ -152,39 +152,39 @@ chezmoi diff
 chezmoi apply
 ```
 
-Adicionar uma nova configuração:
+Add a new configuration:
 
 ```sh
-chezmoi add ~/.config/ferramenta/config
+chezmoi add ~/.config/tool/config
 chezmoi cd
 ./scripts/check-secrets.sh
 git diff --check
 ```
 
-Nunca adicione diretórios inteiros como `.ssh`, `.docker`, `.codex` ou `.config/gh`.
+Never add entire directories such as `.ssh`, `.docker`, `.codex`, or `.config/gh`.
 
-## Brewfile
+## Brewfile behavior
 
-O Brewfile contém somente ferramentas diretas e aplicativos úteis para restaurar o ambiente. Dependências transitivas são resolvidas pelo Homebrew. O script `run_onchange_before_20-brew-bundle.sh.tmpl` volta a executar `brew bundle` somente quando o conteúdo do Brewfile muda.
+The Brewfile contains only direct tools and useful applications for restoring the environment. Homebrew resolves their transitive dependencies. The `run_onchange_before_20-brew-bundle.sh.tmpl` script runs `brew bundle` again only when the Brewfile content changes.
 
-Para verificar sem instalar:
+Check the Brewfile without installing anything:
 
 ```sh
 brew bundle check --file="$(chezmoi source-path)/Brewfile"
 ```
 
-## Secrets
+## Secrets policy
 
-Nunca são gerenciados ou copiados para o source state:
+The following are never managed or copied into the source state:
 
-- chaves SSH públicas ou privadas;
-- tokens e credenciais do GitHub CLI;
-- `.env` e API keys;
-- arquivos de autenticação do Codex, Docker e GitHub CLI;
-- identidade Git local;
-- cookies, históricos, caches e keyrings.
+- private or public SSH keys;
+- GitHub CLI tokens and credentials;
+- `.env` files and API keys;
+- Codex, Docker, and GitHub CLI authentication files;
+- the local Git identity;
+- cookies, histories, caches, and keyrings.
 
-`.gitignore` e `.chezmoiignore` são apenas proteção complementar. Execute antes de cada commit:
+`.gitignore` and `.chezmoiignore` are only additional safeguards. Run these checks before every commit:
 
 ```sh
 ./scripts/check-secrets.sh
@@ -194,20 +194,20 @@ git status --short
 
 ## macOS defaults
 
-Os defaults são conservadores e opt-in:
+The defaults are conservative and opt-in:
 
 ```sh
 ./scripts/macos-defaults.sh
 ```
 
-O script mostra extensões e barras de caminho/status, expande diálogos e evita `.DS_Store` em volumes externos. Não altera aparência, wallpaper ou segurança.
+The script shows file extensions and Finder path/status bars, expands dialogs, and prevents `.DS_Store` files on external volumes. It does not change appearance, wallpaper, or security settings.
 
-## Reverter ou deixar de gerenciar
+## Reverting or unmanaging a file
 
-Revise primeiro com `chezmoi diff`. Para abandonar uma edição ainda não aplicada, restaure o arquivo no repositório Git. Para deixar de gerenciar um arquivo sem apagá-lo do home:
+Review changes with `chezmoi diff` first. To discard an unapplied edit, restore the file in the Git repository. To stop managing a file without deleting it from the home directory:
 
 ```sh
-chezmoi forget CAMINHO
+chezmoi forget PATH
 ```
 
-Revise o diff antes de commit ou apply.
+Review the diff before committing or applying changes.
