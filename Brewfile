@@ -20,6 +20,9 @@ brew "pnpm"
 brew "openjdk@21"
 brew "maven"
 
+# PHP
+brew "composer"
+
 # Applications worth restoring on a development Mac
 cask "alt-tab"
 cask "docker"
