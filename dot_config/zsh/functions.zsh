@@ -29,7 +29,7 @@ port() {
 }
 
 proj() {
-  local root="${PROJECTS_DIR:-$HOME}"
+  local root="${PROJECTS_DIR:-$HOME/Developer}"
   local selected
   selected=$(find "$root" -maxdepth 4 -type d -name .git -prune 2>/dev/null | sed 's#/.git$##' | fzf --prompt='project> ')
   [[ -n "$selected" ]] && cd -- "$selected"
