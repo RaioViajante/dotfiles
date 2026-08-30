@@ -1,0 +1,14 @@
+#!/bin/bash
+set -euo pipefail
+
+if command -v brew >/dev/null 2>&1; then
+  exit 0
+fi
+
+if [[ "$(uname -s)" != Darwin ]]; then
+  echo "This bootstrap supports macOS only." >&2
+  exit 1
+fi
+
+echo "Installing Homebrew..."
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"

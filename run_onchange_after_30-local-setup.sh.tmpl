@@ -1,0 +1,20 @@
+#!/bin/bash
+# Dotfiles revision: {{ include "dot_gitconfig" | sha256sum }}
+set -euo pipefail
+
+git_local="$HOME/.config/git/local.gitconfig"
+mkdir -p "$(dirname "$git_local")" "$HOME/.cache/zsh" "$HOME/.local/bin"
+
+if [[ ! -e "$git_local" ]]; then
+  install -m 600 /dev/null "$git_local"
+  cat >&2 <<'MESSAGE'
+Created an empty ~/.config/git/local.gitconfig.
+Add your private Git identity locally:
+
+[user]
+    name = YOUR_NAME
+    email = YOUR_EMAIL
+MESSAGE
+else
+  chmod 600 "$git_local"
+fi

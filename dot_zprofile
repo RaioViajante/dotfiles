@@ -1,0 +1,11 @@
+# Homebrew on Apple Silicon. Avoid invoking `brew shellenv` on every login.
+if [[ -d /opt/homebrew ]]; then
+  export HOMEBREW_PREFIX=/opt/homebrew
+  export HOMEBREW_CELLAR=/opt/homebrew/Cellar
+  export HOMEBREW_REPOSITORY=/opt/homebrew
+  path=(/opt/homebrew/bin /opt/homebrew/sbin $path)
+  fpath=(/opt/homebrew/share/zsh/site-functions $fpath)
+fi
+
+typeset -U path PATH fpath FPATH
+export PATH FPATH

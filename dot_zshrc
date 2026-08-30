@@ -1,0 +1,8 @@
+# Keep interactive shell setup modular and easy to audit.
+[[ -o interactive ]] || return
+
+readonly ZSH_CONFIG_DIR="$HOME/.config/zsh"
+for config_file in options paths completion aliases functions dev tools; do
+  source "$ZSH_CONFIG_DIR/${config_file}.zsh"
+done
+unset config_file

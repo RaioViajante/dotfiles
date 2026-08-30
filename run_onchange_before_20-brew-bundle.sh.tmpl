@@ -1,0 +1,19 @@
+#!/bin/bash
+# Brewfile checksum: {{ include "Brewfile" | sha256sum }}
+set -euo pipefail
+
+if [[ "${DOTFILES_SKIP_BREW_BUNDLE:-}" == 1 ]]; then
+  echo "Skipping Brewfile for this apply (DOTFILES_SKIP_BREW_BUNDLE=1)."
+  exit 0
+fi
+
+if [[ -x /opt/homebrew/bin/brew ]]; then
+  brew_bin=/opt/homebrew/bin/brew
+elif command -v brew >/dev/null 2>&1; then
+  brew_bin="$(command -v brew)"
+else
+  echo "Homebrew is unavailable after bootstrap." >&2
+  exit 1
+fi
+
+"$brew_bin" bundle --file="{{ .chezmoi.sourceDir }}/Brewfile"

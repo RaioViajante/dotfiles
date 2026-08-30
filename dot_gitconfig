@@ -1,0 +1,36 @@
+[include]
+	path = ~/.config/git/local.gitconfig
+
+[init]
+	defaultBranch = main
+[fetch]
+	prune = true
+	pruneTags = true
+[pull]
+	ff = only
+[push]
+	default = current
+	autoSetupRemote = true
+[core]
+	excludesFile = ~/.config/git/ignore
+[color]
+	ui = auto
+[diff]
+	algorithm = histogram
+	colorMoved = zebra
+	mnemonicPrefix = true
+[merge]
+	conflictStyle = zdiff3
+[branch]
+	sort = -committerdate
+[tag]
+	sort = version:refname
+[alias]
+	st = status --short --branch
+	sw = switch
+	co = checkout
+	br = branch
+	ci = commit
+	last = log -1 --stat
+	lg = log --graph --decorate --date=short --pretty=format:"%C(auto)%h %C(blue)%ad%Creset %C(auto)%d%Creset %s - %an" --all
+	unstage = restore --staged --
