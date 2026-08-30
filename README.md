@@ -42,6 +42,10 @@ Angular CLI e Codex CLI atualmente são pacotes npm globais e não são instalad
 
 Arquivos com prefixo `dot_` são aplicados ao home pelo chezmoi. `README.md`, `Brewfile` e `scripts/` ficam apenas no source state por meio de `.chezmoiignore`.
 
+## Validação automática
+
+O workflow `.github/workflows/validate.yml` roda em macOS a cada push e pull request. Ele verifica estrutura obrigatória, sintaxe Bash/Zsh/Git/Brewfile, secrets, caminhos específicos de máquina e uma aplicação isolada do chezmoi em diretório temporário.
+
 ## Requisitos
 
 - Mac com acesso à internet

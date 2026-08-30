@@ -6,7 +6,7 @@ typeset -U path PATH
   path=("/Applications/Visual Studio Code.app/Contents/Resources/app/bin" $path)
 
 # Java 21 LTS is the default for Java and Spring Boot work.
-readonly JAVA_21_HOME="/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home"
+typeset -g JAVA_21_HOME="/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home"
 if [[ -d "$JAVA_21_HOME" ]]; then
   export JAVA_HOME="$JAVA_21_HOME"
   path=("$JAVA_HOME/bin" $path)

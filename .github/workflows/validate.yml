@@ -1,0 +1,72 @@
+name: Validate dotfiles
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: macos-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Install validation dependencies
+        run: |
+          command -v rg >/dev/null || brew install ripgrep
+          command -v chezmoi >/dev/null || brew install chezmoi
+
+      - name: Validate repository structure
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(
+            Brewfile README.md dot_zshrc dot_zprofile dot_gitconfig
+            dot_config/starship.toml
+            dot_config/zsh/aliases.zsh
+            dot_config/zsh/completion.zsh
+            dot_config/zsh/dev.zsh
+            dot_config/zsh/functions.zsh
+            dot_config/zsh/options.zsh
+            dot_config/zsh/paths.zsh
+            dot_config/zsh/tools.zsh
+            scripts/check-secrets.sh
+          )
+          for path in "${required[@]}"; do
+            test -e "$path" || { echo "Missing required path: $path" >&2; exit 1; }
+          done
+
+      - name: Validate shell and Git syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in dot_zshrc dot_zprofile dot_config/zsh/*.zsh; do
+            zsh -n "$file"
+          done
+          for file in run_*.tmpl scripts/*.sh; do
+            bash -n "$file"
+          done
+          ruby -c Brewfile
+          git config --file dot_gitconfig --list >/dev/null
+
+      - name: Scan for secrets and machine-specific paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./scripts/check-secrets.sh
+          if rg -n --hidden --glob '!**/.git/**' --glob '!.github/workflows/validate.yml' '(/Users/|bryancalvarenga|outlook\.com|195070286\+)' .; then
+            echo "Machine-specific identity or path found." >&2
+            exit 1
+          fi
+
+      - name: Simulate chezmoi apply
+        shell: bash
+        run: |
+          set -euo pipefail
+          destination="$(mktemp -d)"
+          state="$RUNNER_TEMP/chezmoi-state.boltdb"
+          chezmoi --source "$PWD" --destination "$destination" --persistent-state "$state" apply --exclude=scripts
+          test -z "$(chezmoi --source "$PWD" --destination "$destination" --persistent-state "$state" diff --exclude=scripts)"

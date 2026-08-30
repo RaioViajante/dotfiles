@@ -1,7 +1,9 @@
 # Keep interactive shell setup modular and easy to audit.
 [[ -o interactive ]] || return
+[[ -n ${DOTFILES_ZSH_LOADED:-} ]] && return
+typeset -g DOTFILES_ZSH_LOADED=1
 
-readonly ZSH_CONFIG_DIR="$HOME/.config/zsh"
+typeset -g ZSH_CONFIG_DIR="$HOME/.config/zsh"
 for config_file in options paths completion aliases functions dev tools; do
   source "$ZSH_CONFIG_DIR/${config_file}.zsh"
 done
