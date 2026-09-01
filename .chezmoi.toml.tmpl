@@ -1,0 +1,17 @@
+{{/*
+chezmoi configuration template.
+
+Platform branching throughout this repository uses the built-in
+`.chezmoi.os` fact, so this file asks no interactive questions and is
+safe to regenerate at any time with `chezmoi init`.
+*/ -}}
+
+[diff]
+    exclude = ["scripts"]
+
+[data.java]
+    # Eclipse Temurin versions installed by scripts/fedora/40-java.sh and
+    # referenced by dot_config/Code/User/settings.json.tmpl on Linux.
+    # Bump both places together.
+    default = "25.0.4-tem"
+    lts = "21.0.12+1.1-tem"

@@ -1,8 +1,45 @@
+# Editor / OS noise
 .DS_Store
 *.swp
+*.swo
 *.tmp
+*~
+
+# Local, per-machine, never committed
+local.gitconfig
+*.local
 .env
 .env.*
 !.env.example
-local.gitconfig
-*.local
+
+# Private keys and SSH client state
+id_rsa*
+id_ed25519*
+id_ecdsa*
+*.pem
+*.p12
+*.pfx
+known_hosts
+known_hosts.*
+authorized_keys
+
+# Secure Boot / MOK key material
+MOK*
+*.der
+*.priv
+
+# Credential and token files
+.npmrc
+.netrc
+auth.json
+hosts.yml
+credentials
+credentials.json
+
+# Hardware-specific state that belongs to the workstation-setup repository
+monitors.xml
+
+# Local setup backups (see README)
+*.bak
+*.backup
+*.backup-*

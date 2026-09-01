@@ -41,12 +41,16 @@ done < <(rg -l --hidden --glob '!**/.git/**' --glob '!scripts/check-secrets.sh' 
   -- '(gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}|(api[_-]?key|access[_-]?token|client[_-]?secret|password)[[:space:]]*[:=][[:space:]]*[^[:space:]$<{][^[:space:]]{7,})' \
   "$root" 2>/dev/null || true)
 
+# The negative lookaheads skip non-email tokens that share the user@domain
+# shape: the Git SSH remote and the public GNOME Shell extension UUIDs used by
+# scripts/fedora/70-gnome.sh.
+email_pattern='(?<![A-Za-z0-9._%+-])(?!git@github\.com\b)(?!clipboard-indicator@tudmotu\.com\b)(?!background-logo@fedorahosted\.org\b)[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'
 while IFS= read -r file; do
   [[ -n "$file" ]] || continue
   printf 'email-like content: %s\n' "${file#"$root"/}"
   found=1
 done < <(rg -l --pcre2 --hidden --glob '!**/.git/**' --glob '!scripts/check-secrets.sh' \
-  -- '(?<![A-Za-z0-9._%+-])(?!git@github\.com\b)[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}' "$root" 2>/dev/null || true)
+  -- "$email_pattern" "$root" 2>/dev/null || true)
 
 if (( found )); then
   echo "Secret scan failed. Values were intentionally not printed." >&2

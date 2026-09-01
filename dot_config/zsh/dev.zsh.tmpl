@@ -10,6 +10,8 @@ export PAGER=less
 export LESS='-FRX'
 export FZF_DEFAULT_OPTS='--height=40% --layout=reverse --border'
 
+{{ if eq .chezmoi.os "darwin" -}}
+# macOS: switch the active JDK using the system java_home helper.
 jdk() {
   if [[ $# -eq 0 ]]; then
     print "active: ${JAVA_HOME:-system}"
@@ -38,3 +40,10 @@ jdk() {
   rehash
   java -version
 }
+{{ else if eq .chezmoi.os "linux" -}}
+# Linux: JDKs are managed by SDKMAN (initialised in integrations.zsh).
+#   sdk list java            show installable and installed versions
+#   sdk use java 21.0.12+1.1-tem   switch the current shell
+#   sdk default java 25.0.4-tem    change the machine default
+#   sdk env / .sdkmanrc      pin a per-project JDK (not enabled automatically)
+{{ end -}}

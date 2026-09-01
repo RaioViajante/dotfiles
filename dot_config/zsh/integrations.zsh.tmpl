@@ -1,0 +1,22 @@
+{{ if eq .chezmoi.os "linux" -}}
+# Linux tool integrations. Each block is guarded so a missing optional tool
+# never breaks shell startup (important during the first bootstrap run).
+
+# fnm: per-directory Node version switching via .node-version / .nvmrc.
+if [[ -x "$HOME/.local/share/fnm/fnm" ]]; then
+  eval "$("$HOME/.local/share/fnm/fnm" env --use-on-cd --shell zsh)"
+fi
+
+# fzf: key bindings and completion (fzf >= 0.48 ships `--zsh`).
+if (( $+commands[fzf] )) && [[ -o interactive ]]; then
+  source <(fzf --zsh)
+fi
+
+# SDKMAN: development JDKs and Maven. Auto-env is intentionally left disabled;
+# use `sdk env` or a project `.sdkmanrc` explicitly.
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
+{{ else -}}
+# macOS integrations: Homebrew provides Node, pnpm and the JDK directly, and
+# fzf is wired up in completion.zsh. Nothing extra is needed here.
+{{ end -}}

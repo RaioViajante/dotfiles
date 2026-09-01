@@ -1,4 +1,10 @@
 README.md
+LICENSE
 Brewfile
+manifests/**
 scripts/**
 .github/**
+
+{{ if ne .chezmoi.os "linux" -}}
+.config/Code/User/settings.json
+{{ end -}}

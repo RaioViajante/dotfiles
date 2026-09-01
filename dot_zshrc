@@ -4,7 +4,7 @@
 typeset -g DOTFILES_ZSH_LOADED=1
 
 typeset -g ZSH_CONFIG_DIR="$HOME/.config/zsh"
-for config_file in options paths completion aliases functions dev tools; do
+for config_file in options paths completion aliases functions dev integrations tools; do
   source "$ZSH_CONFIG_DIR/${config_file}.zsh"
 done
 unset config_file

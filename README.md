@@ -1,190 +1,183 @@
-# macOS dotfiles
+# dotfiles
 
-An explicit, fast, and reproducible macOS development environment. This repository uses chezmoi to manage Zsh, Git, Starship, and tool bootstrapping without large shell frameworks or stored credentials.
+An explicit, fast, reproducible development environment for **macOS** and
+**Fedora Workstation**, managed with [chezmoi](https://chezmoi.io). No large
+shell frameworks, no stored credentials.
 
-## Tools
+This repository is the *executable* half of the setup: shell, prompt, Git
+defaults, editor settings, package manifests and idempotent bootstrap scripts.
+Machine architecture — disks, dual boot, Secure Boot, NVIDIA, recovery — lives
+in the separate **workstation-setup** repository and is not duplicated here.
 
-- macOS, Zsh, and Homebrew
-- chezmoi, Git, and GitHub CLI
-- Starship, zoxide, fzf, eza, bat, and ripgrep
-- Node.js 24, pnpm, and Angular CLI
-- Java 21 LTS and Maven
-- Docker, Podman, VS Code, and IntelliJ IDEA
+## Supported systems
 
-Angular CLI and Codex CLI are currently global npm packages and are not installed automatically by the Brewfile. Podman is also excluded from the Brewfile because the current installation did not come from Homebrew.
+| Platform | Package manager | Node | Java | Shell integration |
+| --- | --- | --- | --- | --- |
+| macOS (Apple Silicon) | Homebrew (`Brewfile`) | `node@24` (Homebrew) | `openjdk@21` (Homebrew) | Homebrew paths, `java_home` |
+| Fedora Workstation | `dnf` + curated manifest | fnm + Node 24 LTS | SDKMAN (Temurin 25 / 21) | fnm, pnpm, SDKMAN |
 
-## Structure
+Everything shared between the two is written once; platform differences are
+isolated in small chezmoi templates keyed on `.chezmoi.os`.
+
+## Layout
 
 ```text
 .
-├── Brewfile
-├── dot_zshrc
-├── dot_zprofile
-├── dot_gitconfig
+├── .chezmoi.toml.tmpl              # chezmoi config (no prompts)
+├── .chezmoiignore                  # keeps README/Brewfile/scripts/manifests in source only
+├── Brewfile                        # macOS package manifest
+├── dot_zshrc / dot_zprofile        # Zsh entry points
+├── dot_gitconfig                   # portable Git behaviour (identity stays local)
 ├── dot_config/
-│   ├── git/ignore
-│   ├── starship.toml
-│   └── zsh/
-│       ├── aliases.zsh
-│       ├── completion.zsh
-│       ├── dev.zsh
-│       ├── functions.zsh
-│       ├── options.zsh
-│       ├── paths.zsh
-│       └── tools.zsh
-├── run_once_before_10-install-homebrew.sh.tmpl
-├── run_onchange_before_20-brew-bundle.sh.tmpl
-├── run_onchange_after_30-local-setup.sh.tmpl
-└── scripts/
-    ├── check-secrets.sh
-    └── macos-defaults.sh
+│   ├── starship.toml               # shared prompt
+│   ├── zsh/
+│   │   ├── options.zsh             # history + shell options   (shared)
+│   │   ├── paths.zsh.tmpl          # PATH                       (per OS)
+│   │   ├── completion.zsh          # completion + macOS fzf     (shared)
+│   │   ├── aliases.zsh             # aliases                    (shared)
+│   │   ├── functions.zsh           # helper functions          (shared)
+│   │   ├── dev.zsh.tmpl            # EDITOR/PAGER + macOS jdk() (per OS)
+│   │   ├── integrations.zsh.tmpl   # fnm / pnpm / SDKMAN / fzf  (per OS)
+│   │   └── tools.zsh               # zoxide + starship          (shared)
+│   └── Code/User/settings.json.tmpl   # VS Code settings        (Linux only)
+├── manifests/
+│   ├── fedora-packages.txt         # curated dnf packages
+│   └── vscode-extensions.txt       # curated VS Code extensions
+├── scripts/
+│   ├── lib.sh                      # shared bash helpers
+│   ├── check-secrets.sh            # pre-commit secret scan
+│   ├── macos/macos-defaults.sh     # opt-in macOS defaults
+│   └── fedora/                     # idempotent Fedora bootstrap (run after apply)
+│       ├── bootstrap.sh            # runs 10..70 in order
+│       ├── 10-repositories.sh      # RPM Fusion, VS Code, Docker CE repos
+│       ├── 20-packages.sh          # dnf install from the manifest
+│       ├── 30-node.sh              # fnm, Node 24, Corepack, pnpm, Angular CLI
+│       ├── 40-java.sh              # SDKMAN, Temurin 25 + 21, Maven
+│       ├── 50-docker.sh            # Docker Engine CE + group
+│       ├── 60-vscode-extensions.sh # VS Code + curated extensions
+│       └── 70-gnome.sh             # gsettings preferences + shortcuts
+├── run_once_before_10-install-homebrew.sh.tmpl   # macOS only
+├── run_onchange_before_20-brew-bundle.sh.tmpl    # macOS only
+└── run_onchange_after_30-local-setup.sh.tmpl     # both: local dirs + git identity stub
 ```
 
-Files prefixed with `dot_` are applied to the home directory by chezmoi. `README.md`, `Brewfile`, and `scripts/` remain in the source state through `.chezmoiignore`.
+Files prefixed `dot_` are applied to `$HOME`. `README.md`, `Brewfile`,
+`manifests/`, `scripts/` and `.github/` stay in the chezmoi source state
+(`.chezmoiignore`).
 
-## Automated validation
+## Bootstrap
 
-The `.github/workflows/validate.yml` workflow runs on macOS for every push and pull request. It checks the required structure, Bash/Zsh/Git/Brewfile syntax, secrets, machine-specific paths, and an isolated chezmoi application in a temporary directory.
+### macOS
 
-## Requirements
-
-- A Mac with internet access
-- A user allowed to install Homebrew
-- Xcode Command Line Tools when requested by the Homebrew installer
-- A GitHub account for cloning the repository and configuring Git/SSH
-
-## Installing on a new Mac
-
-The standalone chezmoi installer lets you start without Homebrew:
+Unchanged from before. The standalone chezmoi installer works without Homebrew:
 
 ```sh
 sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply RaioViajante
 ```
 
-If chezmoi is already installed:
+First apply: installs Homebrew if missing → `brew bundle` → applies dotfiles →
+creates local dirs and an empty `~/.config/git/local.gitconfig`.
+
+### Fedora Workstation
 
 ```sh
+sudo dnf install -y git chezmoi
 chezmoi init --apply RaioViajante
 ```
 
-During the first apply, the scripts:
-
-1. install Homebrew when it is missing;
-2. apply the Brewfile;
-3. apply the dotfiles;
-4. create local directories and an empty `local.gitconfig` when needed.
-
-## Local Git identity
-
-The versioned `dot_gitconfig` contains only portable Git behavior. Configure your name and email on each machine in `~/.config/git/local.gitconfig`:
-
-```gitconfig
-[user]
-    name = YOUR_NAME
-    email = YOUR_VERIFIED_OR_NOREPLY_EMAIL
-```
-
-Confirm where the identity comes from:
+This clones the source to `~/.local/share/chezmoi` and applies the
+configuration. `chezmoi apply` never calls `sudo`. To keep the working copy
+under `~/Developer` instead, clone it there and symlink chezmoi's source path
+before `init`:
 
 ```sh
-git config --global --includes --show-origin --get-regexp '^user\.'
+git clone git@github.com:RaioViajante/dotfiles.git ~/Developer/dotfiles
+ln -s ~/Developer/dotfiles ~/.local/share/chezmoi
+chezmoi init --apply
 ```
 
-`~/.config/git/local.gitconfig` is never copied into the source state and must never be committed.
-
-## GitHub CLI and per-machine SSH setup
-
-Authentication and SSH keys are not restored by these dotfiles. On each Mac, sign in through the browser:
+Then run the one-time system bootstrap:
 
 ```sh
-gh auth login --hostname github.com --web --git-protocol ssh --skip-ssh-key
-gh auth status
+"$(chezmoi source-path)/scripts/fedora/bootstrap.sh"
 ```
 
-If the machine does not have a dedicated key yet, create one with a passphrase and register only its public key:
+It is idempotent — safe to re-run — and each step can also be run alone
+(`bootstrap.sh 30` runs only `30-node.sh`). It installs the external
+repositories, the curated package set, the Node and Java toolchains, Docker
+Engine CE, VS Code with the curated extensions, and the GNOME preferences.
+
+## Update workflow
 
 ```sh
-ssh-keygen -t ed25519 -a 100 -f ~/.ssh/id_ed25519_raioviajante
-gh ssh-key add ~/.ssh/id_ed25519_raioviajante.pub --type authentication --title "macOS development"
+chezmoi update          # git pull + apply
+chezmoi diff            # preview pending changes
+chezmoi apply           # apply
 ```
 
-Create `~/.ssh/config` locally and set its permissions to `600`:
-
-```sshconfig
-Host github.com
-  HostName github.com
-  User git
-  IdentityFile ~/.ssh/id_ed25519_raioviajante
-  IdentitiesOnly yes
-  AddKeysToAgent yes
-  UseKeychain yes
-```
-
-Validate it with `ssh -T git@github.com`. The SSH config, public/private keys, and GitHub CLI keyring are intentionally excluded from this repository.
-
-To restore the global npm CLIs used in this environment after Node becomes available:
-
-```sh
-npm install --global @angular/cli @openai/codex
-```
-
-## Using chezmoi
-
-Review and apply incoming changes:
-
-```sh
-chezmoi diff
-chezmoi apply
-chezmoi update
-```
-
-`chezmoi update` updates the source repository and applies its changes. To apply configuration without running the Brewfile during that cycle:
+Apply configuration without re-running the Brewfile (macOS):
 
 ```sh
 DOTFILES_SKIP_BREW_BUNDLE=1 chezmoi apply
 ```
 
-Edit a managed configuration:
+After pulling a change that touches `.chezmoi.toml.tmpl`, run `chezmoi init`
+once (it asks nothing).
 
-```sh
-chezmoi edit ~/.zshrc
-chezmoi diff
-chezmoi apply
-```
+On Fedora, re-run `"$(chezmoi source-path)/scripts/fedora/bootstrap.sh"` (or a
+single step) to pick up manifest or toolchain changes.
 
-Add a new configuration:
+## What is shared vs platform-specific
 
-```sh
-chezmoi add ~/.config/tool/config
-chezmoi cd
-./scripts/check-secrets.sh
-git diff --check
-```
+**Shared:** Zsh options, history, completion, aliases, helper functions,
+Starship, zoxide, Git behaviour, editor conventions.
 
-Never add entire directories such as `.ssh`, `.docker`, `.codex`, or `.config/gh`.
+**macOS-specific:** Homebrew (`Brewfile`, `dot_zprofile`, brew run scripts),
+`openjdk@21` `JAVA_HOME`, the `jdk()` `java_home` switcher, VS Code app-bundle
+`PATH`, `scripts/macos/macos-defaults.sh`.
 
-## Brewfile behavior
+**Fedora-specific:** `manifests/fedora-packages.txt`, everything under
+`scripts/fedora/`, fnm + pnpm + SDKMAN shell integration, the Linux VS Code
+`settings.json`.
 
-The Brewfile contains only direct tools and useful applications for restoring the environment. Homebrew resolves their transitive dependencies. The `run_onchange_before_20-brew-bundle.sh.tmpl` script runs `brew bundle` again only when the Brewfile content changes.
+## Manual steps (never automated)
 
-Check the Brewfile without installing anything:
+- GitHub sign-in: `gh auth login --hostname github.com --web --git-protocol ssh`
+- SSH key creation and registration (one dedicated key per machine):
 
-```sh
-brew bundle check --file="$(chezmoi source-path)/Brewfile"
-```
+  ```sh
+  ssh-keygen -t ed25519 -a 100 -f ~/.ssh/id_ed25519_github
+  gh ssh-key add ~/.ssh/id_ed25519_github.pub --type authentication --title "fedora"
+  ```
 
-## Secrets policy
+- Local Git identity:
 
-The following are never managed or copied into the source state:
+  ```sh
+  git config --file ~/.config/git/local.gitconfig user.name  "YOUR_NAME"
+  git config --file ~/.config/git/local.gitconfig user.email "YOUR_NOREPLY_EMAIL"
+  ```
 
-- private or public SSH keys;
-- GitHub CLI tokens and credentials;
-- `.env` files and API keys;
-- Codex, Docker, and GitHub CLI authentication files;
-- the local Git identity;
-- cookies, histories, caches, and keyrings.
+- Default shell: `chsh -s "$(command -v zsh)"` then log out / in
+- `docker` group: log out / in after the bootstrap adds you
+- Clipboard Indicator: install from the GNOME Extensions app
+- Secure Boot / MOK enrollment, firmware, disks, monitor layout: **workstation-setup**
 
-`.gitignore` and `.chezmoiignore` are only additional safeguards. Run these checks before every commit:
+## Security model
+
+Never managed, never copied into the source state, blocked by `.gitignore` and
+`.chezmoiignore` as defence in depth:
+
+- private or public SSH keys, `known_hosts`, `authorized_keys`
+- Secure Boot / MOK key material
+- GitHub CLI tokens, `.npmrc` / `.netrc` / Docker auth, `.env` files, API keys
+- the local Git identity (`~/.config/git/local.gitconfig`)
+- the real `monitors.xml` and other hardware-specific state
+- clipboard history, shell history, caches, keyrings
+
+Membership in the `docker` group is effectively root on the host — the Docker
+bootstrap prints this warning explicitly.
+
+Run before every commit:
 
 ```sh
 ./scripts/check-secrets.sh
@@ -192,22 +185,23 @@ git diff --check
 git status --short
 ```
 
-## macOS defaults
+## Relationship to workstation-setup
 
-The defaults are conservative and opt-in:
+| Repository | Scope |
+| --- | --- |
+| **dotfiles** (this repo) | executable user environment: shell, prompt, Git, editor, package manifests, idempotent bootstrap scripts, CI |
+| **workstation-setup** | machine architecture: hardware, disk layout, dual boot, Secure Boot, NVIDIA, storage, networking, recovery |
 
-```sh
-./scripts/macos-defaults.sh
-```
+If a fact is about *this hardware*, it belongs in workstation-setup. If it is a
+reproducible user-level configuration step, it belongs here.
 
-The script shows file extensions and Finder path/status bars, expands dialogs, and prevents `.DS_Store` files on external volumes. It does not change appearance, wallpaper, or security settings.
+## CI
 
-## Reverting or unmanaging a file
+`.github/workflows/validate.yml` runs on macOS and Linux for every push and PR:
+repository structure, rendered Zsh/Bash syntax, ShellCheck, chezmoi template and
+manifest validation, secret and machine-path scan, a Portuguese-text language
+audit, a trailing-whitespace check, and an isolated `chezmoi apply` per platform.
 
-Review changes with `chezmoi diff` first. To discard an unapplied edit, restore the file in the Git repository. To stop managing a file without deleting it from the home directory:
+## License
 
-```sh
-chezmoi forget PATH
-```
-
-Review the diff before committing or applying changes.
+[MIT](LICENSE).

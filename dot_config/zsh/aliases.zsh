@@ -4,8 +4,11 @@ alias ...='cd ../..'
 alias c='clear'
 alias l='eza --group-directories-first'
 alias ll='eza -lah --group-directories-first --git'
+alias la='eza -laa --group-directories-first --git'
+alias lt='eza --tree --level=2 --group-directories-first'
 alias tree='eza --tree --group-directories-first'
 alias bcat='bat --paging=never'
+alias batp='bat --paging=always'
 
 # Git.
 alias g='git'

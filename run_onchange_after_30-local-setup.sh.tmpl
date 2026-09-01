@@ -2,6 +2,7 @@
 # Dotfiles revision: {{ include "dot_gitconfig" | sha256sum }}
 set -euo pipefail
 
+# Portable post-apply setup: local directories and an empty local Git identity.
 git_local="$HOME/.config/git/local.gitconfig"
 mkdir -p "$(dirname "$git_local")" "$HOME/.cache/zsh" "$HOME/.local/bin"
 
@@ -9,12 +10,23 @@ if [[ ! -e "$git_local" ]]; then
   install -m 600 /dev/null "$git_local"
   cat >&2 <<'MESSAGE'
 Created an empty ~/.config/git/local.gitconfig.
-Add your private Git identity locally:
+Add your private Git identity locally (never commit it):
 
-[user]
-    name = YOUR_NAME
-    email = YOUR_EMAIL
+    git config --file ~/.config/git/local.gitconfig user.name "YOUR_NAME"
+    git config --file ~/.config/git/local.gitconfig user.email "YOUR_EMAIL"
 MESSAGE
 else
   chmod 600 "$git_local"
 fi
+
+{{ if eq .chezmoi.os "linux" -}}
+if command -v dnf >/dev/null 2>&1 && [[ ! -x "$HOME/.local/share/fnm/fnm" ]]; then
+  cat >&2 <<'MESSAGE'
+Fedora host detected without the development toolchain.
+Run the one-time bootstrap to install repositories, packages, Node, Java,
+Docker, VS Code extensions and GNOME preferences:
+
+    "$(chezmoi source-path)/scripts/fedora/bootstrap.sh"
+MESSAGE
+fi
+{{ end -}}

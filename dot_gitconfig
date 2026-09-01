@@ -8,6 +8,7 @@
 	pruneTags = true
 [pull]
 	ff = only
+	rebase = false
 [push]
 	default = current
 	autoSetupRemote = true

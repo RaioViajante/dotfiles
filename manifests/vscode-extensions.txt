@@ -1,0 +1,17 @@
+# Curated VS Code extensions installed by scripts/fedora/60-vscode-extensions.sh.
+# One extension id per line. Lines starting with '#' and blank lines are ignored.
+# Extension packs pull their own members; those members are not listed here.
+# No Copilot, AI assistants, snippet packs or themes are installed automatically.
+
+angular.ng-template
+bradlc.vscode-tailwindcss
+dbaeumer.vscode-eslint
+editorconfig.editorconfig
+esbenp.prettier-vscode
+ms-azuretools.vscode-containers
+mtxr.sqltools
+mtxr.sqltools-driver-mysql
+mtxr.sqltools-driver-pg
+mtxr.sqltools-driver-sqlite
+vmware.vscode-boot-dev-pack
+vscjava.vscode-java-pack

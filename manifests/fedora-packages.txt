@@ -1,0 +1,33 @@
+# Curated Fedora Workstation development packages.
+# One package per line. Lines starting with '#' and blank lines are ignored.
+# Transitive dependencies are intentionally omitted; dnf resolves them.
+# Package names verified on Fedora Workstation 44.
+#
+# External-repository packages (code, docker-ce, ...) are handled by
+# scripts/fedora/10-repositories.sh and the dedicated bootstrap scripts.
+
+ShellCheck
+bat
+btop
+chezmoi
+curl
+eza
+fd-find
+fzf
+gh
+git
+gnome-extensions-app
+gnome-tweaks
+jq
+mariadb
+pipx
+postgresql
+python3-pip
+ripgrep
+sqlite
+tmux
+tree
+wget
+wl-clipboard
+zoxide
+zsh

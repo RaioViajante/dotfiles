@@ -9,64 +9,157 @@ permissions:
 
 jobs:
   validate:
-    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
 
-      - name: Install validation dependencies
+      - name: Install validation dependencies (macOS)
+        if: runner.os == 'macOS'
         run: |
           command -v rg >/dev/null || brew install ripgrep
+          command -v shellcheck >/dev/null || brew install shellcheck
           command -v chezmoi >/dev/null || brew install chezmoi
+
+      - name: Install validation dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ripgrep shellcheck zsh
+          sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Validate repository structure
         shell: bash
         run: |
           set -euo pipefail
           required=(
-            Brewfile README.md dot_zshrc dot_zprofile dot_gitconfig
+            README.md Brewfile
+            .chezmoi.toml.tmpl .chezmoiignore
+            dot_zshrc dot_zprofile dot_gitconfig
             dot_config/starship.toml
-            dot_config/zsh/aliases.zsh
-            dot_config/zsh/completion.zsh
-            dot_config/zsh/dev.zsh
-            dot_config/zsh/functions.zsh
             dot_config/zsh/options.zsh
-            dot_config/zsh/paths.zsh
+            dot_config/zsh/paths.zsh.tmpl
+            dot_config/zsh/completion.zsh
+            dot_config/zsh/aliases.zsh
+            dot_config/zsh/functions.zsh
+            dot_config/zsh/dev.zsh.tmpl
+            dot_config/zsh/integrations.zsh.tmpl
             dot_config/zsh/tools.zsh
+            dot_config/Code/User/settings.json.tmpl
+            manifests/fedora-packages.txt
+            manifests/vscode-extensions.txt
+            scripts/lib.sh
             scripts/check-secrets.sh
+            scripts/macos/macos-defaults.sh
+            scripts/fedora/bootstrap.sh
           )
           for path in "${required[@]}"; do
             test -e "$path" || { echo "Missing required path: $path" >&2; exit 1; }
           done
 
-      - name: Validate shell and Git syntax
+      - name: Render and syntax-check shell for this platform
         shell: bash
         run: |
           set -euo pipefail
+          # Plain Zsh modules.
           for file in dot_zshrc dot_zprofile dot_config/zsh/*.zsh; do
             zsh -n "$file"
           done
-          for file in run_*.tmpl scripts/*.sh; do
+          # Templated Zsh modules, rendered for the current OS.
+          for tmpl in dot_config/zsh/*.zsh.tmpl; do
+            chezmoi execute-template --source "$PWD" < "$tmpl" | zsh -n
+          done
+          # Bootstrap scripts and templated run scripts.
+          for file in scripts/*.sh scripts/*/*.sh; do
             bash -n "$file"
           done
-          ruby -c Brewfile
+          for tmpl in run_*.tmpl; do
+            rendered="$(chezmoi execute-template --source "$PWD" < "$tmpl")"
+            [ -z "$rendered" ] || printf '%s\n' "$rendered" | bash -n
+          done
+          if command -v ruby >/dev/null; then ruby -c Brewfile; fi
           git config --file dot_gitconfig --list >/dev/null
+
+      - name: ShellCheck
+        shell: bash
+        run: |
+          set -euo pipefail
+          # SC1091: library path is resolved at runtime from ${BASH_SOURCE}.
+          shellcheck -x -e SC1091 scripts/lib.sh scripts/check-secrets.sh \
+            scripts/macos/*.sh scripts/fedora/*.sh
+
+      - name: Validate chezmoi templates and manifests
+        shell: bash
+        run: |
+          set -euo pipefail
+          chezmoi execute-template --source "$PWD" < .chezmoi.toml.tmpl >/dev/null
+          chezmoi execute-template --source "$PWD" < .chezmoiignore >/dev/null
+          for manifest in manifests/*.txt; do
+            entries="$(grep -vE '^[[:space:]]*(#|$)' "$manifest" || true)"
+            [ -n "$entries" ] || { echo "empty manifest: $manifest" >&2; exit 1; }
+            dupes="$(printf '%s\n' "$entries" | sort | uniq -d)"
+            [ -z "$dupes" ] || { echo "duplicate entries in $manifest: $dupes" >&2; exit 1; }
+          done
 
       - name: Scan for secrets and machine-specific paths
         shell: bash
         run: |
           set -euo pipefail
           ./scripts/check-secrets.sh
-          if rg -n --hidden --glob '!**/.git/**' --glob '!.github/workflows/validate.yml' '(/Users/|bryancalvarenga|outlook\.com|195070286\+)' .; then
+          if rg -n --hidden --glob '!**/.git/**' --glob '!.github/workflows/validate.yml' \
+            '(/Users/|/home/[a-z]|bryancalvarenga|outlook\.com|195070286\+)' .; then
             echo "Machine-specific identity or path found." >&2
             exit 1
           fi
 
-      - name: Simulate chezmoi apply
+      - name: Language audit (no user-authored Portuguese)
         shell: bash
         run: |
           set -euo pipefail
-          destination="$(mktemp -d)"
-          state="$RUNNER_TEMP/chezmoi-state.boltdb"
-          chezmoi --source "$PWD" --destination "$destination" --persistent-state "$state" apply --exclude=scripts
-          test -z "$(chezmoi --source "$PWD" --destination "$destination" --persistent-state "$state" diff --exclude=scripts)"
+          scan_globs=(--hidden --glob '!**/.git/**' --glob '!.github/workflows/validate.yml')
+          # Portuguese-distinctive letters (a with tilde, o with tilde, c-cedilla,
+          # accented vowels).
+          if rg -n "${scan_globs[@]}" '[\x{00E3}\x{00F5}\x{00E7}\x{00E1}\x{00E2}\x{00E0}\x{00E9}\x{00EA}\x{00ED}\x{00F3}\x{00F4}]' . ; then
+            echo "Portuguese-looking characters found." >&2
+            exit 1
+          fi
+          # Common Portuguese words unlikely in English technical prose.
+          if rg -n "${scan_globs[@]}" -i -w \
+            'nao|funcao|instalacao|configuracao|arquivo|senha|usuario|tambem|voce|reproduzivel|necessario|entrada|saida|ambiente' . ; then
+            echo "Portuguese words found." >&2
+            exit 1
+          fi
+          echo "NO PORTUGUESE USER-AUTHORED CONTENT FOUND"
+
+      - name: Whitespace check
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git grep -nIP '[ \t]+$' -- . ':!*.md'; then
+            echo "Trailing whitespace found." >&2
+            exit 1
+          fi
+
+      - name: Simulate chezmoi init + apply for this platform
+        shell: bash
+        run: |
+          set -euo pipefail
+          dest="$(mktemp -d)"
+          cfg="$(mktemp -d)/chezmoi.toml"
+          state="$(mktemp -d)/state.boltdb"
+          cz() { chezmoi --config "$cfg" --source "$PWD" --destination "$dest" --persistent-state "$state" "$@"; }
+          cz init
+          cz apply --exclude=scripts,encrypted
+          # Applying twice must be a no-op.
+          cz apply --exclude=scripts,encrypted
+          test -z "$(cz diff --exclude=scripts,encrypted)"
+          # On Linux the VS Code settings are managed; confirm valid JSON.
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            python3 -c 'import json,re,sys; json.loads(re.sub(r"//.*","",open(sys.argv[1]).read()))' \
+              "$dest/.config/Code/User/settings.json"
+          fi
