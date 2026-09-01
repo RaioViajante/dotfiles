@@ -111,8 +111,10 @@ jobs:
         run: |
           set -euo pipefail
           ./scripts/check-secrets.sh
+          # The managed Git identity (a github.com noreply address) is allowed;
+          # the real personal address and absolute home paths are not.
           if rg -n --hidden --glob '!**/.git/**' --glob '!.github/workflows/validate.yml' \
-            '(/Users/|/home/[a-z]|bryancalvarenga|outlook\.com|195070286\+)' .; then
+            '(/Users/|/home/[a-z]|bryancalvarenga|outlook\.com)' .; then
             echo "Machine-specific identity or path found." >&2
             exit 1
           fi

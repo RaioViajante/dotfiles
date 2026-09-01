@@ -27,7 +27,7 @@ isolated in small chezmoi templates keyed on `.chezmoi.os`.
 ├── .chezmoiignore                  # keeps README/Brewfile/scripts/manifests in source only
 ├── Brewfile                        # macOS package manifest
 ├── dot_zshrc / dot_zprofile        # Zsh entry points
-├── dot_gitconfig                   # portable Git behaviour (identity stays local)
+├── dot_gitconfig                   # Git behaviour + shared identity (noreply email)
 ├── dot_config/
 │   ├── starship.toml               # shared prompt
 │   ├── zsh/
@@ -76,7 +76,7 @@ sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply RaioViajante
 ```
 
 First apply: installs Homebrew if missing → `brew bundle` → applies dotfiles →
-creates local dirs and an empty `~/.config/git/local.gitconfig`.
+creates local dirs. The Git identity in `dot_gitconfig` works immediately.
 
 ### Fedora Workstation
 
@@ -130,7 +130,7 @@ single step) to pick up manifest or toolchain changes.
 ## What is shared vs platform-specific
 
 **Shared:** Zsh options, history, completion, aliases, helper functions,
-Starship, zoxide, Git behaviour, editor conventions.
+Starship, zoxide, Git behaviour and identity (noreply email), editor conventions.
 
 **macOS-specific:** Homebrew (`Brewfile`, `dot_zprofile`, brew run scripts),
 `openjdk@21` `JAVA_HOME`, the `jdk()` `java_home` switcher, VS Code app-bundle
@@ -150,13 +150,6 @@ Starship, zoxide, Git behaviour, editor conventions.
   gh ssh-key add ~/.ssh/id_ed25519_github.pub --type authentication --title "fedora"
   ```
 
-- Local Git identity:
-
-  ```sh
-  git config --file ~/.config/git/local.gitconfig user.name  "YOUR_NAME"
-  git config --file ~/.config/git/local.gitconfig user.email "YOUR_NOREPLY_EMAIL"
-  ```
-
 - Default shell: `chsh -s "$(command -v zsh)"` then log out / in
 - `docker` group: log out / in after the bootstrap adds you
 - Clipboard Indicator: install from the GNOME Extensions app
@@ -170,9 +163,12 @@ Never managed, never copied into the source state, blocked by `.gitignore` and
 - private or public SSH keys, `known_hosts`, `authorized_keys`
 - Secure Boot / MOK key material
 - GitHub CLI tokens, `.npmrc` / `.netrc` / Docker auth, `.env` files, API keys
-- the local Git identity (`~/.config/git/local.gitconfig`)
+- `~/.config/git/local.gitconfig` (optional per-machine Git overrides)
 - the real `monitors.xml` and other hardware-specific state
 - clipboard history, shell history, caches, keyrings
+
+The versioned Git identity is a `github.com` noreply address, which is public by
+design; the real personal address must never appear.
 
 Membership in the `docker` group is effectively root on the host — the Docker
 bootstrap prints this warning explicitly.

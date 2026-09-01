@@ -1,5 +1,6 @@
-[include]
-	path = ~/.config/git/local.gitconfig
+[user]
+	name = raioviajante
+	email = 195070286+RaioViajante@users.noreply.github.com
 
 [init]
 	defaultBranch = main
@@ -35,3 +36,8 @@
 	last = log -1 --stat
 	lg = log --graph --decorate --date=short --pretty=format:"%C(auto)%h %C(blue)%ad%Creset %C(auto)%d%Creset %s - %an" --all
 	unstage = restore --staged --
+
+# Optional per-machine overrides (identity, signing keys, work paths).
+# Loaded last so it wins; the file is never committed. Safe to leave absent.
+[include]
+	path = ~/.config/git/local.gitconfig

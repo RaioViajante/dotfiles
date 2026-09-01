@@ -2,19 +2,16 @@
 # Dotfiles revision: {{ include "dot_gitconfig" | sha256sum }}
 set -euo pipefail
 
-# Portable post-apply setup: local directories and an empty local Git identity.
+# Portable post-apply setup: local directories and the optional Git override file.
 git_local="$HOME/.config/git/local.gitconfig"
 mkdir -p "$(dirname "$git_local")" "$HOME/.cache/zsh" "$HOME/.local/bin"
 
+# The shared Git identity ships in dot_gitconfig and works immediately.
+# ~/.config/git/local.gitconfig is optional and only for per-machine overrides
+# (a different identity, signing keys, work paths). Create it empty so it can be
+# edited in place; it is never committed.
 if [[ ! -e "$git_local" ]]; then
   install -m 600 /dev/null "$git_local"
-  cat >&2 <<'MESSAGE'
-Created an empty ~/.config/git/local.gitconfig.
-Add your private Git identity locally (never commit it):
-
-    git config --file ~/.config/git/local.gitconfig user.name "YOUR_NAME"
-    git config --file ~/.config/git/local.gitconfig user.email "YOUR_EMAIL"
-MESSAGE
 else
   chmod 600 "$git_local"
 fi
