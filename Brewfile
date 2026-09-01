@@ -21,6 +21,7 @@ brew "openjdk@21"
 brew "maven"
 
 # PHP
+brew "php"
 brew "composer"
 
 # Applications worth restoring on a development Mac

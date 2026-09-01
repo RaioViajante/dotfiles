@@ -40,6 +40,15 @@ jdk() {
   rehash
   java -version
 }
+
+# MySQL Community Server (native macOS .pkg) service controls. Guarded so the
+# aliases only exist when that installation is present.
+if [[ -x /usr/local/mysql/support-files/mysql.server ]]; then
+  alias mysql-start='sudo /usr/local/mysql/support-files/mysql.server start'
+  alias mysql-stop='sudo /usr/local/mysql/support-files/mysql.server stop'
+  alias mysql-restart='sudo /usr/local/mysql/support-files/mysql.server restart'
+  alias mysql-status='/usr/local/mysql/support-files/mysql.server status'
+fi
 {{ else if eq .chezmoi.os "linux" -}}
 # Linux: JDKs are managed by SDKMAN (initialised in integrations.zsh).
 #   sdk list java            show installable and installed versions

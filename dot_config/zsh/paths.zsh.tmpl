@@ -8,6 +8,13 @@ typeset -U path PATH
 [[ -d "/Applications/Visual Studio Code.app/Contents/Resources/app/bin" ]] && \
   path=("/Applications/Visual Studio Code.app/Contents/Resources/app/bin" $path)
 
+# MySQL Community Server installed from the native macOS package.
+[[ -d "/usr/local/mysql/bin" ]] && path=("/usr/local/mysql/bin" $path)
+
+# Rust toolchain (rustup). The helper it writes only prepends ~/.cargo/bin to
+# PATH and is a safe no-op when Rust is not installed.
+[[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
+
 # Java 21 LTS is the default for Java and Spring Boot work.
 typeset -g JAVA_21_HOME="/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home"
 if [[ -d "$JAVA_21_HOME" ]]; then
