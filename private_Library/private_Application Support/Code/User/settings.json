@@ -23,8 +23,14 @@
   // Homebrew CPython, discovered even when VS Code is launched from Finder.
   "python.defaultInterpreterPath": "/opt/homebrew/bin/python3",
 
-  // File/folder icon theme (PKief.material-icon-theme, managed in the Brewfile
-  // vscode block). The only cosmetic editor setting managed here; colour theme
-  // and fonts stay per-user.
-  "workbench.iconTheme": "material-icon-theme"
+  // Appearance captured from this machine's manual setup: the Catppuccin Mocha
+  // colour theme (catppuccin.catppuccin-vsc) and the Material file/folder icon
+  // theme (PKief.material-icon-theme), both installed from the Brewfile vscode
+  // block. Editor font and formatting stay per-user / per-project.
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.colorTheme": "Catppuccin Mocha",
+
+  // Match the Linux configuration: no Red Hat Java telemetry, set explicitly so
+  // the extension does not re-prompt after a chezmoi apply.
+  "redhat.telemetry.enabled": false
 }

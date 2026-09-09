@@ -147,7 +147,7 @@ Starship, zoxide, Git behaviour and identity (noreply email), editor conventions
 `dot_zprofile`, brew run scripts), `openjdk@25` `JAVA_HOME` with the `jdk()`
 `java_home` switcher, VS Code app-bundle `PATH`, the macOS VS Code
 `settings.json` (`java.configuration.runtimes` + Python interpreter + Material
-Icon Theme), `scripts/macos/macos-defaults.sh`,
+Icon Theme + Catppuccin Mocha colour theme), `scripts/macos/macos-defaults.sh`,
 `scripts/macos/register-jdks.sh`, `scripts/macos/apply-preferences.sh`.
 
 **Fedora-specific:** `manifests/fedora-packages.txt`, everything under

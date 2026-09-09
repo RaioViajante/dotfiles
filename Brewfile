@@ -76,6 +76,8 @@ vscode "vmware.vscode-boot-dev-pack"
 vscode "ms-python.python"
 vscode "ms-azuretools.vscode-containers"
 
-# File/folder icon theme. The only editor theme managed automatically; keep it
-# the single icon theme so icons stay consistent.
+# Editor themes, matching the manual choice on this machine: the Material
+# file/folder icon theme and the Catppuccin colour theme (Mocha variant, set in
+# the managed settings.json). One of each so the look stays consistent.
 vscode "PKief.material-icon-theme"
+vscode "catppuccin.catppuccin-vsc"
