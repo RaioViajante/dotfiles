@@ -1,0 +1,25 @@
+{
+  // Managed by chezmoi (macOS). Keep this file minimal: only settings that make
+  // the toolchain deterministic belong here. Formatting and editor conventions
+  // are deliberately left to each project.
+
+  // Homebrew OpenJDK 25 is the default development JDK; OpenJDK 21 stays
+  // available for projects that still require it. The versioned "opt" paths are
+  // stable across patch releases; the Cellar path is never referenced. This is
+  // also what a Finder/Dock-launched VS Code uses, since a GUI launch does not
+  // inherit the Zsh PATH or JAVA_HOME.
+  "java.configuration.runtimes": [
+    {
+      "name": "JavaSE-25",
+      "path": "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home",
+      "default": true
+    },
+    {
+      "name": "JavaSE-21",
+      "path": "/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home"
+    }
+  ],
+
+  // Homebrew CPython, discovered even when VS Code is launched from Finder.
+  "python.defaultInterpreterPath": "/opt/homebrew/bin/python3"
+}

@@ -11,19 +11,22 @@ export LESS='-FRX'
 export FZF_DEFAULT_OPTS='--height=40% --layout=reverse --border'
 
 {{ if eq .chezmoi.os "darwin" -}}
-# macOS: switch the active JDK using the system java_home helper.
+# macOS: switch the active Homebrew JDK without requiring system registration.
 jdk() {
   if [[ $# -eq 0 ]]; then
     print "active: ${JAVA_HOME:-system}"
     java -version
     print '\navailable:'
     /usr/libexec/java_home -V 2>&1
+    [[ -d "$JAVA_25_HOME" ]] && print "    25 (Homebrew) $JAVA_25_HOME"
     [[ -d "$JAVA_21_HOME" ]] && print "    21 (Homebrew) $JAVA_21_HOME"
     return
   fi
 
   local requested="$1" selected_home
-  if [[ "$requested" == 21 && -d "$JAVA_21_HOME" ]]; then
+  if [[ "$requested" == 25 && -d "$JAVA_25_HOME" ]]; then
+    selected_home="$JAVA_25_HOME"
+  elif [[ "$requested" == 21 && -d "$JAVA_21_HOME" ]]; then
     selected_home="$JAVA_21_HOME"
   else
     selected_home=$(/usr/libexec/java_home -v "$requested" 2>/dev/null) || {
@@ -32,22 +35,22 @@ jdk() {
     }
   fi
 
+  typeset -gU path PATH
   path=(${path:#*/Contents/Home/bin})
   export JAVA_HOME="$selected_home"
   path=("$JAVA_HOME/bin" $path)
-  typeset -U path PATH
   export PATH
   rehash
   java -version
 }
 
-# MySQL Community Server (native macOS .pkg) service controls. Guarded so the
-# aliases only exist when that installation is present.
-if [[ -x /usr/local/mysql/support-files/mysql.server ]]; then
-  alias mysql-start='sudo /usr/local/mysql/support-files/mysql.server start'
-  alias mysql-stop='sudo /usr/local/mysql/support-files/mysql.server stop'
-  alias mysql-restart='sudo /usr/local/mysql/support-files/mysql.server restart'
-  alias mysql-status='/usr/local/mysql/support-files/mysql.server status'
+# Homebrew MySQL service controls. These are user services and do not store
+# credentials or require sudo.
+if (( $+commands[brew] )); then
+  alias mysql-start='brew services start mysql'
+  alias mysql-stop='brew services stop mysql'
+  alias mysql-restart='brew services restart mysql'
+  alias mysql-status='brew services list | grep -E "^mysql[[:space:]]"'
 fi
 {{ else if eq .chezmoi.os "linux" -}}
 # Linux: JDKs are managed by SDKMAN (initialised in integrations.zsh).

@@ -56,6 +56,7 @@ jobs:
             scripts/lib.sh
             scripts/check-secrets.sh
             scripts/macos/macos-defaults.sh
+            scripts/macos/register-jdks.sh
             scripts/fedora/bootstrap.sh
           )
           for path in "${required[@]}"; do

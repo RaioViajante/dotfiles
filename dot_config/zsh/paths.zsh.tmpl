@@ -3,6 +3,10 @@ typeset -U path PATH
 # User-local executables (all platforms).
 [[ -d "$HOME/.local/bin" ]] && path=("$HOME/.local/bin" $path)
 
+# Docker Desktop CLI helpers and Compose plugins.
+[[ -d "$HOME/.docker/bin" ]] && path=("$HOME/.docker/bin" $path)
+[[ -d "$HOME/.docker/completions" ]] && fpath=("$HOME/.docker/completions" $fpath)
+
 {{ if eq .chezmoi.os "darwin" -}}
 # Visual Studio Code CLI shipped inside the macOS application bundle.
 [[ -d "/Applications/Visual Studio Code.app/Contents/Resources/app/bin" ]] && \
@@ -11,13 +15,25 @@ typeset -U path PATH
 # MySQL Community Server installed from the native macOS package.
 [[ -d "/usr/local/mysql/bin" ]] && path=("/usr/local/mysql/bin" $path)
 
+# Homebrew MySQL client and server commands.
+[[ -d "/opt/homebrew/opt/mysql/bin" ]] && path=("/opt/homebrew/opt/mysql/bin" $path)
+
+# Homebrew's versioned Node runtime is keg-only; expose it through the
+# managed PATH rather than per-machine symlinks in ~/.local/bin.
+[[ -d "/opt/homebrew/opt/node@24/bin" ]] && path=("/opt/homebrew/opt/node@24/bin" $path)
+
 # Rust toolchain (rustup). The helper it writes only prepends ~/.cargo/bin to
 # PATH and is a safe no-op when Rust is not installed.
 [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
 
-# Java 21 LTS is the default for Java and Spring Boot work.
+# Java 25 is the current default for Java and Spring Boot work. Java 21 remains
+# available through jdk 21 for projects that still require it.
+typeset -g JAVA_25_HOME="/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home"
 typeset -g JAVA_21_HOME="/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home"
-if [[ -d "$JAVA_21_HOME" ]]; then
+if [[ -d "$JAVA_25_HOME" ]]; then
+  export JAVA_HOME="$JAVA_25_HOME"
+  path=("$JAVA_HOME/bin" $path)
+elif [[ -d "$JAVA_21_HOME" ]]; then
   export JAVA_HOME="$JAVA_21_HOME"
   path=("$JAVA_HOME/bin" $path)
 fi

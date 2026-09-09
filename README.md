@@ -13,7 +13,7 @@ in the separate **workstation-setup** repository and is not duplicated here.
 
 | Platform | Package manager | Node | Java | Shell integration |
 | --- | --- | --- | --- | --- |
-| macOS (Apple Silicon) | Homebrew (`Brewfile`) | `node@24` (Homebrew) | `openjdk@21` (Homebrew) | Homebrew paths, `java_home` |
+| macOS (Apple Silicon) | Homebrew (`Brewfile`) | `node@24` (Homebrew) | `openjdk@25` default + `openjdk@21` (Homebrew) | Homebrew paths, `java_home` |
 | Fedora Workstation | `dnf` + curated manifest | fnm + Node 24 LTS | SDKMAN (Temurin 25 / 21) | fnm, pnpm, SDKMAN |
 
 Everything shared between the two is written once; platform differences are
@@ -25,7 +25,7 @@ isolated in small chezmoi templates keyed on `.chezmoi.os`.
 .
 ├── .chezmoi.toml.tmpl              # chezmoi config (no prompts)
 ├── .chezmoiignore                  # keeps README/Brewfile/scripts/manifests in source only
-├── Brewfile                        # macOS package manifest
+├── Brewfile                        # macOS package manifest (packages + VS Code extensions)
 ├── dot_zshrc / dot_zprofile        # Zsh entry points
 ├── dot_gitconfig                   # Git behaviour + shared identity (noreply email)
 ├── dot_config/
@@ -40,13 +40,16 @@ isolated in small chezmoi templates keyed on `.chezmoi.os`.
 │   │   ├── integrations.zsh.tmpl   # fnm / pnpm / SDKMAN / fzf  (per OS)
 │   │   └── tools.zsh               # zoxide + starship          (shared)
 │   └── Code/User/settings.json.tmpl   # VS Code settings        (Linux only)
+├── private_Library/.../Code/User/settings.json # VS Code settings (macOS only)
 ├── manifests/
 │   ├── fedora-packages.txt         # curated dnf packages
 │   └── vscode-extensions.txt       # curated VS Code extensions
 ├── scripts/
 │   ├── lib.sh                      # shared bash helpers
 │   ├── check-secrets.sh            # pre-commit secret scan
-│   ├── macos/macos-defaults.sh     # opt-in macOS defaults
+│   ├── macos/
+│   │   ├── macos-defaults.sh       # opt-in macOS defaults
+│   │   └── register-jdks.sh        # symlink Homebrew JDKs into /Library/Java
 │   └── fedora/                     # idempotent Fedora bootstrap (run after apply)
 │       ├── bootstrap.sh            # runs 10..70 in order
 │       ├── 10-repositories.sh      # RPM Fusion, VS Code, Docker CE repos
@@ -69,14 +72,21 @@ Files prefixed `dot_` are applied to `$HOME`. `README.md`, `Brewfile`,
 
 ### macOS
 
-Unchanged from before. The standalone chezmoi installer works without Homebrew:
+The standalone chezmoi installer works without Homebrew:
 
 ```sh
 sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply RaioViajante
 ```
 
-First apply: installs Homebrew if missing → `brew bundle` → applies dotfiles →
-creates local dirs. The Git identity in `dot_gitconfig` works immediately.
+First apply: installs Homebrew if missing → `brew bundle` (packages, casks and
+the curated VS Code extensions) → applies dotfiles → creates local dirs. The Git
+identity in `dot_gitconfig` works immediately.
+
+Then, once, register the Homebrew JDKs with macOS (admin password required):
+
+```sh
+"$(chezmoi source-path)/scripts/macos/register-jdks.sh"
+```
 
 ### Fedora Workstation
 
@@ -132,9 +142,11 @@ single step) to pick up manifest or toolchain changes.
 **Shared:** Zsh options, history, completion, aliases, helper functions,
 Starship, zoxide, Git behaviour and identity (noreply email), editor conventions.
 
-**macOS-specific:** Homebrew (`Brewfile`, `dot_zprofile`, brew run scripts),
-`openjdk@21` `JAVA_HOME`, the `jdk()` `java_home` switcher, VS Code app-bundle
-`PATH`, `scripts/macos/macos-defaults.sh`.
+**macOS-specific:** Homebrew (`Brewfile` packages + `vscode` extensions,
+`dot_zprofile`, brew run scripts), `openjdk@25` `JAVA_HOME` with the `jdk()`
+`java_home` switcher, VS Code app-bundle `PATH`, the macOS VS Code
+`settings.json` (`java.configuration.runtimes` + Python interpreter),
+`scripts/macos/macos-defaults.sh`, `scripts/macos/register-jdks.sh`.
 
 **Fedora-specific:** `manifests/fedora-packages.txt`, everything under
 `scripts/fedora/`, fnm + pnpm + SDKMAN shell integration, the Linux VS Code
@@ -151,6 +163,10 @@ Starship, zoxide, Git behaviour and identity (noreply email), editor conventions
   ```
 
 - Default shell: `chsh -s "$(command -v zsh)"` then log out / in
+- macOS JDK registration: `"$(chezmoi source-path)/scripts/macos/register-jdks.sh"`
+  (needs an admin password once, to symlink the Homebrew JDKs into
+  `/Library/Java/JavaVirtualMachines` so `java_home`, VS Code and IntelliJ find
+  them). `chezmoi apply` never calls `sudo`, so this stays a manual step.
 - `docker` group: log out / in after the bootstrap adds you
 - Clipboard Indicator: install from the GNOME Extensions app
 - Secure Boot / MOK enrollment, firmware, disks, monitor layout: **workstation-setup**
