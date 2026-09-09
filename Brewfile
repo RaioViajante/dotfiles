@@ -31,6 +31,10 @@ brew "composer"
 
 # Python
 brew "python@3.14"
+# Project/package/environment manager. Homebrew Python stays the default
+# interpreter; uv only manages per-project environments and their own Python
+# versions (.python-version / pyproject.toml).
+brew "uv"
 
 # macOS Dock management. Used by scripts/macos/apply-preferences.sh to build a
 # deterministic Dock; not required at runtime.
