@@ -44,6 +44,12 @@ cask "postman"
 cask "spotify"
 cask "discord"
 
+# Browsers. Zen is the daily driver; Firefox Developer Edition is for frontend
+# work and DevTools; Tor Browser stays independent. No Chrome.
+cask "zen"
+cask "firefox@developer-edition"
+cask "tor-browser"
+
 # VS Code extensions. Top-level only: extension packs pull in their own members
 # (Java, Spring Boot, Pylance, debuggers) automatically, so those are not listed.
 # Installed by `brew bundle` through run_onchange_before_20-brew-bundle.sh.tmpl.
