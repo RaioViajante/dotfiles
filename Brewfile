@@ -44,12 +44,22 @@ cask "postman"
 cask "spotify"
 cask "discord"
 cask "notion"
+# Ships a .pkg installer, so `brew bundle` asks for an admin password once.
+cask "microsoft-outlook"
+
+# Whiteboard / diagram notes. Native macOS Excalidraw client (third-party).
+cask "excalidrawz"
 
 # Browsers. Zen is the daily driver; Firefox Developer Edition is for frontend
 # work and DevTools; Tor Browser stays independent. No Chrome.
 cask "zen"
 cask "firefox@developer-edition"
 cask "tor-browser"
+
+# Password manager and VPN. Managed here for reproducibility only: account
+# sign-in and the macOS network-extension approval for Proton VPN stay manual.
+cask "bitwarden"
+cask "protonvpn"
 
 # VS Code extensions. Top-level only: extension packs pull in their own members
 # (Java, Spring Boot, Pylance, debuggers) automatically, so those are not listed.
