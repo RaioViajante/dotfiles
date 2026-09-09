@@ -43,6 +43,7 @@ cask "mysqlworkbench"
 cask "postman"
 cask "spotify"
 cask "discord"
+cask "notion"
 
 # Browsers. Zen is the daily driver; Firefox Developer Edition is for frontend
 # work and DevTools; Tor Browser stays independent. No Chrome.
