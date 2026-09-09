@@ -21,5 +21,10 @@
   ],
 
   // Homebrew CPython, discovered even when VS Code is launched from Finder.
-  "python.defaultInterpreterPath": "/opt/homebrew/bin/python3"
+  "python.defaultInterpreterPath": "/opt/homebrew/bin/python3",
+
+  // File/folder icon theme (PKief.material-icon-theme, managed in the Brewfile
+  // vscode block). The only cosmetic editor setting managed here; colour theme
+  // and fonts stay per-user.
+  "workbench.iconTheme": "material-icon-theme"
 }

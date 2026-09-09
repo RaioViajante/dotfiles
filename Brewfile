@@ -71,3 +71,7 @@ vscode "vscjava.vscode-java-pack"
 vscode "vmware.vscode-boot-dev-pack"
 vscode "ms-python.python"
 vscode "ms-azuretools.vscode-containers"
+
+# File/folder icon theme. The only editor theme managed automatically; keep it
+# the single icon theme so icons stay consistent.
+vscode "PKief.material-icon-theme"
