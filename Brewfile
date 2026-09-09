@@ -32,6 +32,10 @@ brew "composer"
 # Python
 brew "python@3.14"
 
+# macOS Dock management. Used by scripts/macos/apply-preferences.sh to build a
+# deterministic Dock; not required at runtime.
+brew "dockutil"
+
 # Applications worth restoring on a development Mac
 cask "alt-tab"
 cask "docker-desktop"

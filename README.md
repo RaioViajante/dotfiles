@@ -48,7 +48,8 @@ isolated in small chezmoi templates keyed on `.chezmoi.os`.
 │   ├── lib.sh                      # shared bash helpers
 │   ├── check-secrets.sh            # pre-commit secret scan
 │   ├── macos/
-│   │   ├── macos-defaults.sh       # opt-in macOS defaults
+│   │   ├── apply-preferences.sh    # opt-in Dock + Finder personalization (dockutil)
+│   │   ├── macos-defaults.sh       # opt-in macOS file-handling defaults
 │   │   └── register-jdks.sh        # symlink Homebrew JDKs into /Library/Java
 │   └── fedora/                     # idempotent Fedora bootstrap (run after apply)
 │       ├── bootstrap.sh            # runs 10..70 in order
@@ -145,8 +146,9 @@ Starship, zoxide, Git behaviour and identity (noreply email), editor conventions
 **macOS-specific:** Homebrew (`Brewfile` packages + `vscode` extensions,
 `dot_zprofile`, brew run scripts), `openjdk@25` `JAVA_HOME` with the `jdk()`
 `java_home` switcher, VS Code app-bundle `PATH`, the macOS VS Code
-`settings.json` (`java.configuration.runtimes` + Python interpreter),
-`scripts/macos/macos-defaults.sh`, `scripts/macos/register-jdks.sh`.
+`settings.json` (`java.configuration.runtimes` + Python interpreter + Material
+Icon Theme), `scripts/macos/macos-defaults.sh`,
+`scripts/macos/register-jdks.sh`, `scripts/macos/apply-preferences.sh`.
 
 **Fedora-specific:** `manifests/fedora-packages.txt`, everything under
 `scripts/fedora/`, fnm + pnpm + SDKMAN shell integration, the Linux VS Code
@@ -167,6 +169,12 @@ Starship, zoxide, Git behaviour and identity (noreply email), editor conventions
   (needs an admin password once, to symlink the Homebrew JDKs into
   `/Library/Java/JavaVirtualMachines` so `java_home`, VS Code and IntelliJ find
   them). `chezmoi apply` never calls `sudo`, so this stays a manual step.
+- macOS desktop personalization: `"$(chezmoi source-path)/scripts/macos/apply-preferences.sh"`
+  builds the Dock (contents + position bottom / always visible / no-recents /
+  minimize-to-app, via `dockutil`; icon size left at the macOS default) and sets
+  a few Finder view options. It is idempotent, needs no `sudo`, and is
+  intentionally kept out of `chezmoi apply` so a routine update never rearranges
+  the Dock.
 - `docker` group: log out / in after the bootstrap adds you
 - Clipboard Indicator: install from the GNOME Extensions app
 - Secure Boot / MOK enrollment, firmware, disks, monitor layout: **workstation-setup**

@@ -55,6 +55,7 @@ jobs:
             manifests/vscode-extensions.txt
             scripts/lib.sh
             scripts/check-secrets.sh
+            scripts/macos/apply-preferences.sh
             scripts/macos/macos-defaults.sh
             scripts/macos/register-jdks.sh
             scripts/fedora/bootstrap.sh
