@@ -40,7 +40,8 @@ isolated in small chezmoi templates keyed on `.chezmoi.os`.
 │   │   ├── integrations.zsh.tmpl   # fnm / pnpm / SDKMAN / fzf  (per OS)
 │   │   └── tools.zsh               # zoxide + starship          (shared)
 │   └── Code/User/settings.json.tmpl   # VS Code settings        (Linux only)
-├── private_Library/.../Code/User/settings.json # VS Code settings (macOS only)
+├── private_Library/.../Code/User/settings.json     # VS Code settings   (macOS only)
+├── private_Library/.../iTerm2/DynamicProfiles/raioviajante.json # iTerm2 profile (macOS only)
 ├── manifests/
 │   ├── fedora-packages.txt         # curated dnf packages
 │   └── vscode-extensions.txt       # curated VS Code extensions
@@ -48,7 +49,7 @@ isolated in small chezmoi templates keyed on `.chezmoi.os`.
 │   ├── lib.sh                      # shared bash helpers
 │   ├── check-secrets.sh            # pre-commit secret scan
 │   ├── macos/
-│   │   ├── apply-preferences.sh    # opt-in Dock + Finder personalization (dockutil)
+│   │   ├── apply-preferences.sh    # opt-in appearance + Dock + Finder personalization
 │   │   ├── macos-defaults.sh       # opt-in macOS file-handling defaults
 │   │   └── register-jdks.sh        # symlink Homebrew JDKs into /Library/Java
 │   └── fedora/                     # idempotent Fedora bootstrap (run after apply)
@@ -147,7 +148,8 @@ Starship, zoxide, Git behaviour and identity (noreply email), editor conventions
 `dot_zprofile`, brew run scripts), `openjdk@25` `JAVA_HOME` with the `jdk()`
 `java_home` switcher, VS Code app-bundle `PATH`, the macOS VS Code
 `settings.json` (`java.configuration.runtimes` + Python interpreter + Material
-Icon Theme + Catppuccin Mocha colour theme), `scripts/macos/macos-defaults.sh`,
+Icon Theme + Catppuccin Mocha colour theme), the iTerm2 Dynamic Profile
+`raioviajante`, `scripts/macos/macos-defaults.sh`,
 `scripts/macos/register-jdks.sh`, `scripts/macos/apply-preferences.sh`.
 
 **Fedora-specific:** `manifests/fedora-packages.txt`, everything under
@@ -170,11 +172,23 @@ Icon Theme + Catppuccin Mocha colour theme), `scripts/macos/macos-defaults.sh`,
   `/Library/Java/JavaVirtualMachines` so `java_home`, VS Code and IntelliJ find
   them). `chezmoi apply` never calls `sudo`, so this stays a manual step.
 - macOS desktop personalization: `"$(chezmoi source-path)/scripts/macos/apply-preferences.sh"`
-  builds the Dock (contents + position bottom / always visible / no-recents /
-  minimize-to-app, via `dockutil`; icon size left at the macOS default) and sets
-  a few Finder view options. It is idempotent, needs no `sudo`, and is
-  intentionally kept out of `chezmoi apply` so a routine update never rearranges
-  the Dock.
+  sets the global appearance (Dark mode + Purple accent), builds the Dock
+  (contents + position bottom / always visible / no-recents / minimize-to-app,
+  via `dockutil`; icon size left at the macOS default) and a few Finder view
+  options. It is idempotent, needs no `sudo`, and is intentionally kept out of
+  `chezmoi apply` so a routine update never rearranges the Dock. Log out / in
+  once afterwards for the accent colour to reach every UI element.
+- iTerm2 profile: `chezmoi apply` writes the Dynamic Profile
+  `~/Library/Application Support/iTerm2/DynamicProfiles/raioviajante.json`
+  (font, window size, transparency, blur, colours). iTerm2 loads it live, but
+  does not make it the default automatically: open **Settings -> Profiles**,
+  select `raioviajante`, then **Other Actions -> Set as Default** once. On a
+  machine that already has a hand-made profile of the same name, delete that one
+  first so there is no duplicate.
+- Wallpaper: not automated (the macOS wallpaper store is not a stable public
+  interface). The current image is
+  `~/Library/Mobile Documents/com~apple~CloudDocs/wallhaven-m9rogm.jpg` (iCloud
+  Drive); set it again from **System Settings -> Wallpaper** on a new machine.
 - `docker` group: log out / in after the bootstrap adds you
 - Clipboard Indicator: install from the GNOME Extensions app
 - Secure Boot / MOK enrollment, firmware, disks, monitor layout: **workstation-setup**

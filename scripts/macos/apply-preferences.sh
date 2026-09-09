@@ -1,7 +1,8 @@
 #!/bin/bash
 # Apply a small, conservative set of macOS desktop preferences for a developer
-# machine: the Dock contents, the Dock behaviour, and a few Finder view options.
-# Everything here is cosmetic and reversible from System Settings.
+# machine: the global appearance (Dark mode + accent colour), the Dock contents
+# and behaviour, and a few Finder view options. Every value here is cosmetic and
+# reversible from System Settings.
 #
 # Like register-jdks.sh, this is a MANUAL post-bootstrap step. `chezmoi apply`
 # never runs it, so a routine dotfiles update never rearranges the Dock.
@@ -13,8 +14,8 @@
 #
 # This script deliberately does NOT touch: iCloud / Desktop / Documents sync,
 # any network / DNS / firewall / proxy setting, security or privacy settings,
-# the wallpaper, the accent colour, scroll direction, the keyboard, or the
-# trackpad. It never calls sudo.
+# the wallpaper, scroll direction, the keyboard, or the trackpad. It never calls
+# sudo.
 set -euo pipefail
 
 if [[ "$(uname -s)" != Darwin ]]; then
@@ -27,6 +28,7 @@ if [[ "${EUID:-$(id -u)}" -eq 0 ]]; then
   exit 1
 fi
 
+appearance_changed=0
 dock_changed=0
 finder_changed=0
 
@@ -46,6 +48,15 @@ defaults_set() {
   defaults write "$domain" "$key" "$@"
   printf -v "$flag" 1
 }
+
+# --- macOS appearance -------------------------------------------------------
+# Dark mode and the Purple accent colour, matching the manual choice on this
+# machine. AppleAccentColor: 0 red, 1 orange, 2 yellow, 3 green, 4 blue,
+# 5 purple, 6 pink, -1 graphite (multicolour = the key is simply absent). The
+# highlight colour is left to follow the accent. A full log out / in may be
+# needed before every UI element picks up an accent change.
+defaults_set NSGlobalDomain AppleInterfaceStyle Dark appearance_changed -string Dark
+defaults_set NSGlobalDomain AppleAccentColor    5    appearance_changed -int    5
 
 # --- Dock behaviour ----------------------------------------------------------
 # Bottom, always visible (auto-hide OFF), no "recent applications" section, and
@@ -129,6 +140,9 @@ defaults_set com.apple.finder  ShowStatusBar          1 finder_changed -bool tru
 defaults_set com.apple.finder  AppleShowAllFiles      0 finder_changed -bool false
 
 # --- Restart affected apps only if something changed --------------------
+if [[ "$appearance_changed" -eq 1 ]]; then
+  echo "Appearance updated. Log out and back in for the accent colour to apply everywhere." >&2
+fi
 if [[ "$dock_changed" -eq 1 ]]; then
   killall Dock 2>/dev/null || true
   echo "Dock updated." >&2
@@ -137,6 +151,6 @@ if [[ "$finder_changed" -eq 1 ]]; then
   killall Finder 2>/dev/null || true
   echo "Finder updated. Log out and back in if a setting is not visible yet." >&2
 fi
-if [[ "$dock_changed" -eq 0 && "$finder_changed" -eq 0 ]]; then
+if [[ "$appearance_changed" -eq 0 && "$dock_changed" -eq 0 && "$finder_changed" -eq 0 ]]; then
   echo "Nothing to do: all preferences already applied." >&2
 fi

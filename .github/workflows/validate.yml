@@ -108,6 +108,21 @@ jobs:
             [ -z "$dupes" ] || { echo "duplicate entries in $manifest: $dupes" >&2; exit 1; }
           done
 
+      - name: Validate the iTerm2 Dynamic Profile
+        shell: bash
+        run: |
+          set -euo pipefail
+          profile="private_Library/private_Application Support/iTerm2/DynamicProfiles/raioviajante.json"
+          python3 -c '
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          profiles = d["Profiles"]
+          assert isinstance(profiles, list) and profiles, "Profiles must be a non-empty list"
+          for p in profiles:
+              assert p.get("Name") and p.get("Guid"), "each profile needs Name and Guid"
+          print("iTerm2 Dynamic Profile OK:", ", ".join(p["Name"] for p in profiles))
+          ' "$profile"
+
       - name: Scan for secrets and machine-specific paths
         shell: bash
         run: |
