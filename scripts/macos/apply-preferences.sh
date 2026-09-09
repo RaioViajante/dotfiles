@@ -132,11 +132,15 @@ fi
 
 # --- Finder view options -------------------------------------------------
 # Developer-friendly and non-destructive: always show filename extensions, show
-# the Path Bar and the Status Bar. Hidden files stay hidden by default. iCloud
-# Desktop/Documents and the sidebar favourites are not touched.
+# the Path Bar and the Status Bar, and keep the sidebar visible. Hidden files
+# stay hidden by default. Only the sidebar's visibility is managed here
+# (ShowSidebar, the stable toggle behind View > Show Sidebar / Cmd-Opt-S); its
+# favourites, item order and iCloud locations are Finder-managed and untouched.
+# iCloud Desktop/Documents sync is not touched.
 defaults_set NSGlobalDomain    AppleShowAllExtensions 1 finder_changed -bool true
 defaults_set com.apple.finder  ShowPathbar            1 finder_changed -bool true
 defaults_set com.apple.finder  ShowStatusBar          1 finder_changed -bool true
+defaults_set com.apple.finder  ShowSidebar            1 finder_changed -bool true
 defaults_set com.apple.finder  AppleShowAllFiles      0 finder_changed -bool false
 
 # --- Restart affected apps only if something changed --------------------
