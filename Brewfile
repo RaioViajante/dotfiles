@@ -64,10 +64,12 @@ cask "zen"
 cask "firefox@developer-edition"
 cask "tor-browser"
 
-# Password manager and VPN. Managed here for reproducibility only: account
-# sign-in and the macOS network-extension approval for Proton VPN stay manual.
+# Password manager and VPNs. Managed here for reproducibility only: account
+# sign-in and the macOS network-extension approval stay manual. Cloudflare WARP
+# also ships a .pkg installer, so `brew bundle` asks for an admin password once.
 cask "bitwarden"
 cask "protonvpn"
+cask "cloudflare-warp"
 
 # VS Code extensions. Top-level only: extension packs pull in their own members
 # (Java, Spring Boot, Pylance, debuggers) automatically, so those are not listed.
