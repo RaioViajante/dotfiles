@@ -20,6 +20,7 @@ gnome-extensions-app
 gnome-tweaks
 jq
 mariadb
+neovim
 pipx
 postgresql
 python3-pip

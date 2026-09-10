@@ -30,6 +30,11 @@ isolated in small chezmoi templates keyed on `.chezmoi.os`.
 ├── dot_gitconfig                   # Git behaviour + shared identity (noreply email)
 ├── dot_config/
 │   ├── starship.toml               # shared prompt
+│   ├── nvim/                        # Neovim, modular Lua config      (shared)
+│   │   ├── init.lua                 # entry point: leader keys, module loading
+│   │   ├── lua/config/             # options, keymaps, autocmds, lazy bootstrap
+│   │   ├── lua/plugins/            # one file per concern, auto-imported by lazy
+│   │   └── lazy-lock.json          # pinned plugin versions
 │   ├── zsh/
 │   │   ├── options.zsh             # history + shell options   (shared)
 │   │   ├── paths.zsh.tmpl          # PATH                       (per OS)
@@ -142,7 +147,8 @@ single step) to pick up manifest or toolchain changes.
 ## What is shared vs platform-specific
 
 **Shared:** Zsh options, history, completion, aliases, helper functions,
-Starship, zoxide, Git behaviour and identity (noreply email), editor conventions.
+Starship, zoxide, Git behaviour and identity (noreply email), editor conventions,
+the Neovim configuration (`dot_config/nvim/`).
 
 **macOS-specific:** Homebrew (`Brewfile` packages + `vscode` extensions,
 `dot_zprofile`, brew run scripts), `openjdk@25` `JAVA_HOME` with the `jdk()`
@@ -155,6 +161,33 @@ Icon Theme + Catppuccin Mocha colour theme), the iTerm2 Dynamic Profile
 **Fedora-specific:** `manifests/fedora-packages.txt`, everything under
 `scripts/fedora/`, fnm + pnpm + SDKMAN shell integration, the Linux VS Code
 `settings.json`.
+
+## Neovim
+
+A modular Lua configuration in `dot_config/nvim/`, shared between both platforms.
+Installed by the `Brewfile` on macOS and `manifests/fedora-packages.txt` on
+Fedora. VS Code stays the primary editor; Neovim is the terminal editor and the
+`EDITOR` fallback when `code` is absent.
+
+- **Plugin manager:** [lazy.nvim](https://github.com/folke/lazy.nvim),
+  bootstrapped on the first launch. Plugin versions are pinned in
+  `lazy-lock.json` (committed).
+- **Layout:** `init.lua` sets the leader key (space) and loads `lua/config/`
+  (options, keymaps, autocmds, lazy bootstrap); every file in `lua/plugins/` is
+  auto-imported, one concern per file.
+- **Language servers and formatters** install through Mason on the first launch
+  (`:Mason` to inspect). Covered: TypeScript / JavaScript / Angular, HTML / CSS,
+  JSON, ESLint, PHP (Intelephense), Python (Pyright + Ruff), Java (jdtls, basic),
+  Lua, Bash and YAML; formatting on save via `stylua`, `prettierd`, `black`,
+  `isort` and `shfmt`.
+- **First launch:** run `nvim`, let lazy install everything, then restart once so
+  the freshly installed servers attach. `:checkhealth` reports the rest.
+- **Theme:** Catppuccin Mocha, matching VS Code and the iTerm2 profile. The
+  terminal font (Monaco) is not a Nerd Font, so plugin glyphs fall back to ASCII;
+  install a Nerd Font and set `vim.g.have_nerd_font = true` in `init.lua` for
+  icons.
+- **After `:Lazy update`:** re-stage the lockfile with
+  `chezmoi re-add ~/.config/nvim/lazy-lock.json`, then commit.
 
 ## Manual steps (never automated)
 
