@@ -12,6 +12,11 @@ brew "gh"
 brew "htop"
 brew "nmap"
 
+# Terminal editor. Neovim with a modular Lua config in dot_config/nvim; fd backs
+# its file picker and ripgrep (above) backs its text search.
+brew "neovim"
+brew "fd"
+
 # JavaScript / TypeScript
 brew "node@24"
 brew "pnpm"

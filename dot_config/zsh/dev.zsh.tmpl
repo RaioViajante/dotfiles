@@ -1,9 +1,19 @@
 if (( $+commands[code] )); then
   export EDITOR='code --wait'
   export VISUAL='code --wait'
+elif (( $+commands[nvim] )); then
+  export EDITOR=nvim
+  export VISUAL=nvim
 else
   export EDITOR=vim
   export VISUAL=vim
+fi
+
+# Prefer Neovim for quick terminal edits regardless of the GUI editor above.
+if (( $+commands[nvim] )); then
+  alias vi=nvim
+  alias vim=nvim
+  alias vimdiff='nvim -d'
 fi
 
 export PAGER=less
