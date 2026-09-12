@@ -36,5 +36,18 @@
 
   // Match the Linux configuration: no Red Hat Java telemetry, set explicitly so
   // the extension does not re-prompt after a chezmoi apply.
-  "redhat.telemetry.enabled": false
+  "redhat.telemetry.enabled": false,
+
+  // Copilot is not part of this setup; keep it off everywhere it could
+  // otherwise auto-suggest, including commit messages and the SCM input.
+  "github.copilot.enable": {
+    "*": false,
+    "plaintext": false,
+    "markdown": false,
+    "scminput": false
+  },
+
+  // Drop the macOS title bar's command center (search/nav dropdown); the
+  // Command Palette (Cmd+Shift+P) covers the same ground.
+  "window.commandCenter": false
 }
