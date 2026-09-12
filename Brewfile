@@ -40,6 +40,10 @@ brew "python@3.14"
 # interpreter; uv only manages per-project environments and their own Python
 # versions (.python-version / pyproject.toml).
 brew "uv"
+# Python version manager. Installs and switches full interpreter versions
+# (pyenv install, pyenv global/local) for cases uv's per-project versions
+# don't cover; shell hook lives in tools.zsh.
+brew "pyenv"
 
 # macOS Dock management. Used by scripts/macos/apply-preferences.sh to build a
 # deterministic Dock; not required at runtime.
