@@ -30,6 +30,10 @@
   "workbench.iconTheme": "material-icon-theme",
   "workbench.colorTheme": "Catppuccin Mocha",
 
+  // Show each nested single-child folder on its own line in the Explorer
+  // instead of collapsing them into one "parent/child" row.
+  "explorer.compactFolders": false,
+
   // Match the Linux configuration: no Red Hat Java telemetry, set explicitly so
   // the extension does not re-prompt after a chezmoi apply.
   "redhat.telemetry.enabled": false
