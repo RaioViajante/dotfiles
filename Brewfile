@@ -84,6 +84,13 @@ cask "proton-drive"
 cask "protonvpn"
 cask "cloudflare-warp"
 
+# Background IMAP/SMTP bridge for the Proton account, used by the local
+# proton-mail-mcp server (~/Developer/proton-mail-mcp) — not a user-facing
+# app. Deliberately left out of scripts/macos/apply-preferences.sh's
+# dock_apps list, so it never joins the Proton apps in the Dock. Account
+# sign-in stays manual, same as the rest of the Proton ecosystem above.
+cask "proton-mail-bridge"
+
 # VS Code extensions. Top-level only: extension packs pull in their own members
 # (Java, Spring Boot, Pylance, debuggers) automatically, so those are not listed.
 # Installed by `brew bundle` through run_onchange_before_20-brew-bundle.sh.tmpl.
