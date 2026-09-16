@@ -73,10 +73,14 @@ cask "zen"
 cask "firefox@developer-edition"
 cask "tor-browser"
 
-# Password manager and VPNs. Managed here for reproducibility only: account
-# sign-in and the macOS network-extension approval stay manual. Cloudflare WARP
-# also ships a .pkg installer, so `brew bundle` asks for an admin password once.
-cask "bitwarden"
+# Proton ecosystem and VPNs. Managed here for reproducibility only: account
+# sign-in and the macOS network-extension approval stay manual. Proton Mail
+# covers both Mail and Calendar, so no separate Calendar cask is listed.
+# Cloudflare WARP also ships a .pkg installer, so `brew bundle` asks for an
+# admin password once.
+cask "proton-mail"
+cask "proton-pass"
+cask "proton-drive"
 cask "protonvpn"
 cask "cloudflare-warp"
 

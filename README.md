@@ -222,6 +222,13 @@ Fedora. VS Code stays the primary editor; Neovim is the terminal editor and the
   interface). The current image is
   `~/Library/Mobile Documents/com~apple~CloudDocs/wallhaven-m9rogm.jpg` (iCloud
   Drive); set it again from **System Settings -> Wallpaper** on a new machine.
+- Proton Authenticator: no Homebrew cask exists yet and Proton ships macOS
+  builds only through the Mac App Store (no standalone `.dmg`/`.pkg`), so it is
+  not in the Brewfile. Install it from the App Store
+  (`open 'macappstore://apps.apple.com/app/id6741758667'`), signed in with your
+  own Apple ID. Once `/Applications/Proton Authenticator.app` exists,
+  `apply-preferences.sh` picks it up in the Dock like any other app; add a
+  Homebrew cask to the Brewfile if Proton ever ships one.
 - `docker` group: log out / in after the bootstrap adds you
 - Clipboard Indicator: install from the GNOME Extensions app
 - Secure Boot / MOK enrollment, firmware, disks, monitor layout: **workstation-setup**

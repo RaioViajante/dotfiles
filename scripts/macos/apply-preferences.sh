@@ -83,13 +83,26 @@ dock_apps=(
   "/Applications/iTerm.app"
   "/Applications/Discord.app"
   "/Applications/Spotify.app"
-  "/Applications/Bitwarden.app"
+  "/Applications/Proton Mail.app"
+  "/Applications/Proton Pass.app"
+  "/Applications/Proton Authenticator.app"
+  "/Applications/Proton Drive.app"
   "/Applications/ProtonVPN.app"
   "/Applications/Tor Browser.app"
   "/Applications/ExcalidrawZ.app"
 )
 
-bundle_id() { plutil -extract CFBundleIdentifier raw "$1/Contents/Info.plist" 2>/dev/null || true; }
+# Most apps use the standard Contents/Info.plist layout. "Designed for iPad"
+# / Mac Catalyst apps installed from the Mac App Store (e.g. Proton
+# Authenticator) instead ship an outer wrapper whose real Info.plist lives at
+# Wrapper/<Name>.app/Info.plist, with no top-level Contents directory.
+bundle_id() {
+  local app="$1"
+  local plist="$app/Contents/Info.plist"
+  [[ -f "$plist" ]] || plist="$(find "$app/Wrapper" -mindepth 2 -maxdepth 2 -name Info.plist 2>/dev/null | head -n1)"
+  [[ -n "$plist" ]] || return 0
+  plutil -extract CFBundleIdentifier raw "$plist" 2>/dev/null || true
+}
 
 if ! command -v dockutil >/dev/null 2>&1; then
   echo "skip: dockutil is not installed (brew install dockutil); Dock contents unchanged" >&2
