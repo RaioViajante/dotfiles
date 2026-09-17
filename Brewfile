@@ -73,16 +73,13 @@ cask "zen"
 cask "firefox@developer-edition"
 cask "tor-browser"
 
-# Proton ecosystem and VPNs. Managed here for reproducibility only: account
+# Proton ecosystem and VPN. Managed here for reproducibility only: account
 # sign-in and the macOS network-extension approval stay manual. Proton Mail
 # covers both Mail and Calendar, so no separate Calendar cask is listed.
-# Cloudflare WARP also ships a .pkg installer, so `brew bundle` asks for an
-# admin password once.
 cask "proton-mail"
 cask "proton-pass"
 cask "proton-drive"
 cask "protonvpn"
-cask "cloudflare-warp"
 
 # Background IMAP/SMTP bridge for the Proton account, used by the local
 # proton-mail-mcp server (~/Developer/proton-mail-mcp) — not a user-facing
