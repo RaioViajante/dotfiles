@@ -56,7 +56,8 @@ isolated in small chezmoi templates keyed on `.chezmoi.os`.
 │   ├── macos/
 │   │   ├── apply-preferences.sh    # opt-in appearance + Dock + Finder personalization
 │   │   ├── macos-defaults.sh       # opt-in macOS file-handling defaults
-│   │   └── register-jdks.sh        # symlink Homebrew JDKs into /Library/Java
+│   │   ├── register-jdks.sh        # symlink Homebrew JDKs into /Library/Java
+│   │   └── setup-proton-mcp.sh     # register proton-mail in Claude Code / Codex
 │   └── fedora/                     # idempotent Fedora bootstrap (run after apply)
 │       ├── bootstrap.sh            # runs 10..70 in order
 │       ├── 10-repositories.sh      # RPM Fusion, VS Code, Docker CE repos
@@ -229,6 +230,17 @@ Fedora. VS Code stays the primary editor; Neovim is the terminal editor and the
   own Apple ID. Once `/Applications/Proton Authenticator.app` exists,
   `apply-preferences.sh` picks it up in the Dock like any other app; add a
   Homebrew cask to the Brewfile if Proton ever ships one.
+- Proton Mail MCP server (Claude Code / Codex):
+  `"$(chezmoi source-path)/scripts/macos/setup-proton-mcp.sh"` registers the
+  `proton-mail` MCP server at user/global scope in both clients, so it is
+  available from any working directory instead of only inside
+  `~/Developer/proton-mail-mcp`. That repo is managed on its own (not by this
+  one); the script only checks that it exists, is built
+  (`pnpm install && pnpm run build`), and that Proton Mail Bridge is
+  installed, then wires up the MCP registration. It is idempotent, needs no
+  `sudo`, stores no secrets, and reports (instead of silently overwriting) if
+  a differing registration already exists. Proton account sign-in and Bridge
+  pairing stay manual, same as the rest of the Proton ecosystem.
 - `docker` group: log out / in after the bootstrap adds you
 - Clipboard Indicator: install from the GNOME Extensions app
 - Secure Boot / MOK enrollment, firmware, disks, monitor layout: **workstation-setup**
