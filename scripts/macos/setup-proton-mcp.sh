@@ -43,7 +43,7 @@ fi
 
 # --- Claude Code: register at user scope, visible from every directory. ---
 if command -v claude >/dev/null 2>&1; then
-  claude_status="$(cd "$HOME" && claude mcp get proton-mail 2>&1 || true)"
+  claude_status="$( (cd "$HOME"; claude mcp get proton-mail 2>&1) || true )"
   if echo "$claude_status" | grep -q "No MCP server named"; then
     (cd "$HOME" && claude mcp add --scope user proton-mail "$node_bin" -- "$entrypoint")
     echo "ok: registered proton-mail in Claude Code (user scope)." >&2
