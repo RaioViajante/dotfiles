@@ -201,6 +201,15 @@ Fedora. VS Code stays the primary editor; Neovim is the terminal editor and the
   ```
 
 - Default shell: `chsh -s "$(command -v zsh)"` then log out / in
+- Xcode Command Line Tools (macOS): required for Homebrew, `git` and `clang`.
+  `chezmoi apply` checks `xcode-select -p` and prints install instructions
+  (`xcode-select --install`) if missing, then re-check by re-running
+  `chezmoi apply`. This machine also has the full `Xcode.app` installed from
+  the Mac App Store (`open 'macappstore://apps.apple.com/app/id497799835'`,
+  Adam ID read from `Xcode.app`'s own metadata); that is only needed for
+  iOS/macOS app development, not for this setup, and Apple does not ship a
+  Homebrew cask for it, so it stays a manual install like Proton Authenticator
+  below.
 - macOS JDK registration: `"$(chezmoi source-path)/scripts/macos/register-jdks.sh"`
   (needs an admin password once, to symlink the Homebrew JDKs into
   `/Library/Java/JavaVirtualMachines` so `java_home`, VS Code and IntelliJ find

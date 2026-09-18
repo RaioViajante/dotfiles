@@ -27,3 +27,23 @@ Docker, VS Code extensions and GNOME preferences:
 MESSAGE
 fi
 {{ end -}}
+
+{{ if eq .chezmoi.os "darwin" -}}
+# Homebrew, git and clang need the Command Line Tools, not full Xcode.app.
+if ! xcode-select -p >/dev/null 2>&1; then
+  cat >&2 <<'MESSAGE'
+Xcode Command Line Tools are required (clang, git and other build tools used
+by Homebrew and this setup) and were not found. Install them with:
+
+    xcode-select --install
+
+This opens Apple's standard installer; follow the prompts, then re-run
+`chezmoi apply`. Full Xcode.app is only needed for iOS/macOS app development,
+not for this setup, and is not managed here since Apple does not ship a
+Homebrew cask for it -- but installing it from the Mac App Store also
+satisfies this check, since it includes the Command Line Tools:
+
+    open 'macappstore://apps.apple.com/app/id497799835'
+MESSAGE
+fi
+{{ end -}}
