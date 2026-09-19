@@ -137,7 +137,7 @@ Engine CE, VS Code with the curated extensions, and the GNOME preferences.
 3. Run the opt-in scripts in `scripts/macos/` (`register-jdks.sh`,
    `macos-defaults.sh`, `apply-preferences.sh`, `setup-proton-mcp.sh`).
 4. Do the manual steps below (sign-ins, SSH key, Mac App Store apps).
-5. Verify: `chezmoi verify`, `brew bundle check --file="$(chezmoi source-path)/Brewfile"`.
+5. Verify: `chezmoi diff` (empty), `brew bundle check --file="$(chezmoi source-path)/Brewfile"`.
 
 Official AI desktop apps are in the `Brewfile`: `claude` (Claude Desktop, which
 includes Claude Code) and `chatgpt` (the ChatGPT desktop app, which now hosts
