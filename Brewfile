@@ -11,6 +11,8 @@ brew "ripgrep"
 brew "gh"
 brew "htop"
 brew "nmap"
+# Shell linter; also run by CI (.github/workflows/validate.yml).
+brew "shellcheck"
 
 # Terminal editor. Neovim with a modular Lua config in dot_config/nvim; fd backs
 # its file picker and ripgrep (above) backs its text search.
@@ -61,6 +63,16 @@ cask "postman"
 cask "spotify"
 cask "discord"
 cask "notion"
+cask "whatsapp"
+
+# Official AI desktop apps (installed alongside, never instead of, the Claude
+# Code and Codex CLIs, which are installed by their own vendors' installers into
+# ~/.local/bin). Claude Desktop includes Claude Code. OpenAI folded the
+# standalone Codex app into the ChatGPT desktop app (July 2026), so `chatgpt`
+# is the official macOS app that exposes Codex; the `codex-app` cask is
+# deprecated upstream and intentionally not used. Sign-in stays manual.
+cask "claude"
+cask "chatgpt"
 
 # Whiteboard / diagram notes. Native macOS Excalidraw client (third-party).
 cask "excalidrawz"
@@ -96,6 +108,8 @@ vscode "vscjava.vscode-java-pack"
 vscode "vmware.vscode-boot-dev-pack"
 vscode "ms-python.python"
 vscode "ms-azuretools.vscode-containers"
+# Official Claude Code extension (IDE integration for the Claude Code CLI).
+vscode "anthropic.claude-code"
 
 # Editor themes, matching the manual choice on this machine: the Material
 # file/folder icon theme and the Catppuccin colour theme (Mocha variant, set in
