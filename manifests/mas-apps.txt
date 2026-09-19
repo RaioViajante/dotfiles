@@ -1,0 +1,5 @@
+# Mac App Store apps to restore, as "<adam-id> <name>". Read by
+# scripts/macos/install-mas-apps.sh. Only apps `mas` can resolve are listed;
+# Proton Authenticator is App Store-only but not resolvable through `mas`, so it
+# is installed by hand (open 'macappstore://apps.apple.com/app/id6741758667').
+497799835 Xcode

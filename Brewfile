@@ -13,6 +13,8 @@ brew "htop"
 brew "nmap"
 # Shell linter; also run by CI (.github/workflows/validate.yml).
 brew "shellcheck"
+# Secret scanner; run over the tree and history before every push.
+brew "gitleaks"
 
 # Terminal editor. Neovim with a modular Lua config in dot_config/nvim; fd backs
 # its file picker and ripgrep (above) backs its text search.
@@ -50,6 +52,11 @@ brew "pyenv"
 # macOS Dock management. Used by scripts/macos/apply-preferences.sh to build a
 # deterministic Dock; not required at runtime.
 brew "dockutil"
+
+# Mac App Store CLI. Used by scripts/macos/install-mas-apps.sh (manual, needs an
+# Apple ID signed in to the App Store); not run by `brew bundle`, so a restore
+# never blocks on App Store authentication.
+brew "mas"
 
 # Applications worth restoring on a development Mac
 cask "alt-tab"
