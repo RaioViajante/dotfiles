@@ -76,7 +76,6 @@ defaults_set com.apple.dock minimize-to-application 1      dock_changed -bool   
 # exactly as macOS manages them and are never removed.
 dock_apps=(
   "/Applications/Zen.app"
-  "/Applications/Microsoft Outlook.app"
   "/Applications/Notion.app"
   "/Applications/Visual Studio Code.app"
   "/Applications/IntelliJ IDEA.app"

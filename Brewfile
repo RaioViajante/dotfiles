@@ -61,8 +61,6 @@ cask "postman"
 cask "spotify"
 cask "discord"
 cask "notion"
-# Ships a .pkg installer, so `brew bundle` asks for an admin password once.
-cask "microsoft-outlook"
 
 # Whiteboard / diagram notes. Native macOS Excalidraw client (third-party).
 cask "excalidrawz"
