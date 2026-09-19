@@ -49,6 +49,7 @@ isolated in small chezmoi templates keyed on `.chezmoi.os`.
 ├── private_Library/.../iTerm2/DynamicProfiles/raioviajante.json # iTerm2 profile (macOS only)
 ├── manifests/
 │   ├── fedora-packages.txt         # curated dnf packages
+│   ├── mas-apps.txt                # Mac App Store apps (macOS)
 │   └── vscode-extensions.txt       # curated VS Code extensions
 ├── scripts/
 │   ├── lib.sh                      # shared bash helpers
@@ -57,6 +58,9 @@ isolated in small chezmoi templates keyed on `.chezmoi.os`.
 │   │   ├── apply-preferences.sh    # opt-in appearance + Dock + Finder personalization
 │   │   ├── macos-defaults.sh       # opt-in macOS file-handling defaults
 │   │   ├── register-jdks.sh        # symlink Homebrew JDKs into /Library/Java
+│   │   ├── setup-startup.sh        # Login Items + Homebrew MySQL service
+│   │   ├── install-mas-apps.sh     # Mac App Store apps from manifests/mas-apps.txt
+│   │   ├── setup-claude-config.sh  # merge-only safe Claude Code settings
 │   │   └── setup-proton-mcp.sh     # register proton-mail in Claude Code / Codex
 │   └── fedora/                     # idempotent Fedora bootstrap (run after apply)
 │       ├── bootstrap.sh            # runs 10..70 in order
@@ -244,9 +248,19 @@ Fedora. VS Code stays the primary editor; Neovim is the terminal editor and the
   machine that already has a hand-made profile of the same name, delete that one
   first so there is no duplicate.
 - Wallpaper: not automated (the macOS wallpaper store is not a stable public
-  interface). The current image is
-  `~/Library/Mobile Documents/com~apple~CloudDocs/wallhaven-m9rogm.jpg` (iCloud
-  Drive); set it again from **System Settings -> Wallpaper** on a new machine.
+  interface) and no image is stored in this public repository. Pick one from
+  **System Settings -> Wallpaper**.
+- Login Items and background services: `"$(chezmoi source-path)/scripts/macos/setup-startup.sh"`
+  (ProtonVPN and Notion Login Items, Homebrew `mysql` service). Apps that manage
+  their own startup (Proton Mail Bridge, AltTab) are set inside those apps.
+- Mac App Store apps: sign in to the App Store with your own Apple ID, then run
+  `"$(chezmoi source-path)/scripts/macos/install-mas-apps.sh"` (never purchases).
+- Claude Code settings: `"$(chezmoi source-path)/scripts/macos/setup-claude-config.sh"`
+  adds the theme, TUI mode and iTerm2 status hooks if missing; credentials and
+  per-project trust are never managed.
+- Docker Desktop: not managed (it rewrites its own settings). After the first
+  launch keep "start at login" off; nothing else is customised.
+- Peripheral software (Logitech, Razer) is intentionally not managed here.
 - Proton Authenticator: no Homebrew cask exists yet and Proton ships macOS
   builds only through the Mac App Store (no standalone `.dmg`/`.pkg`), so it is
   not in the Brewfile. Install it from the App Store
