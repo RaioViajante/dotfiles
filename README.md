@@ -125,6 +125,21 @@ It is idempotent — safe to re-run — and each step can also be run alone
 repositories, the curated package set, the Node and Java toolchains, Docker
 Engine CE, VS Code with the curated extensions, and the GNOME preferences.
 
+### macOS restore order
+
+1. Install macOS and the Xcode Command Line Tools (`xcode-select --install`).
+2. Run the chezmoi one-liner above (Homebrew, every formula, cask and VS Code
+   extension in the `Brewfile`, then the dotfiles).
+3. Run the opt-in scripts in `scripts/macos/` (`register-jdks.sh`,
+   `macos-defaults.sh`, `apply-preferences.sh`, `setup-proton-mcp.sh`).
+4. Do the manual steps below (sign-ins, SSH key, Mac App Store apps).
+5. Verify: `chezmoi verify`, `brew bundle check --file="$(chezmoi source-path)/Brewfile"`.
+
+Official AI desktop apps are in the `Brewfile`: `claude` (Claude Desktop, which
+includes Claude Code) and `chatgpt` (the ChatGPT desktop app, which now hosts
+Codex; the standalone Codex app was discontinued). The Claude Code and Codex
+CLIs are installed separately with their vendors' installers.
+
 ## Update workflow
 
 ```sh
