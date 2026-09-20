@@ -12,3 +12,21 @@ scripts/**
 Library/Application Support/Code/User/settings.json
 Library/Application Support/iTerm2/**
 {{ end -}}
+{{ if ne .chezmoi.os "windows" -}}
+Documents
+AppData
+30-local-setup.ps1
+{{ else -}}
+# Windows: no Zsh, Neovim lives in AppData/Local/nvim, and the shell run
+# scripts have PowerShell counterparts instead.
+.zshrc
+.zprofile
+.config/Code
+.config/zsh
+Library
+.config/nvim
+10-install-homebrew.sh
+20-brew-bundle.sh
+25-vscode-extensions.sh
+30-local-setup.sh
+{{ end -}}

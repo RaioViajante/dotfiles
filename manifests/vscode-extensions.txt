@@ -1,17 +1,35 @@
-# Curated VS Code extensions installed by scripts/fedora/60-vscode-extensions.sh.
+# Canonical VS Code extension list for every platform.
+# Installed by scripts/fedora/60-vscode-extensions.sh (Fedora),
+# scripts/macos/install-vscode-extensions.sh (macOS, run by chezmoi) and
+# scripts/windows/30-vscode-extensions.ps1 (Windows).
 # One extension id per line. Lines starting with '#' and blank lines are ignored.
 # Extension packs pull their own members; those members are not listed here.
-# No Copilot, AI assistants, snippet packs or themes are installed automatically.
+# No Copilot, AI code assistants, snippet packs or extra themes are installed.
 
+# Web
 angular.ng-template
 bradlc.vscode-tailwindcss
 dbaeumer.vscode-eslint
 editorconfig.editorconfig
 esbenp.prettier-vscode
+
+# Java / Spring Boot
+vmware.vscode-boot-dev-pack
+vscjava.vscode-java-pack
+
+# Python
+ms-python.python
+
+# Containers and databases
 ms-azuretools.vscode-containers
 mtxr.sqltools
 mtxr.sqltools-driver-mysql
 mtxr.sqltools-driver-pg
 mtxr.sqltools-driver-sqlite
-vmware.vscode-boot-dev-pack
-vscjava.vscode-java-pack
+
+# Claude Code IDE integration (official).
+anthropic.claude-code
+
+# Appearance: one colour theme and one icon theme (Catppuccin Mocha, Material).
+catppuccin.catppuccin-vsc
+PKief.material-icon-theme

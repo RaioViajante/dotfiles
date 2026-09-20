@@ -6,12 +6,24 @@ Platform branching throughout this repository uses the built-in
 safe to regenerate at any time with `chezmoi init`.
 */ -}}
 
+{{ if eq .chezmoi.os "windows" -}}
+# Windows keeps the working copy wherever `chezmoi init --source` pointed
+# (normally ~/dotfiles), so remember it instead of assuming chezmoi's default.
+sourceDir = {{ .chezmoi.sourceDir | toJson }}
+
+# Run .ps1 scripts with PowerShell 7 and without the user profile.
+[interpreters.ps1]
+    command = "pwsh"
+    args = ["-NoLogo", "-NoProfile"]
+
+{{ end -}}
 [diff]
     exclude = ["scripts"]
 
 [data.java]
     # Eclipse Temurin versions installed by scripts/fedora/40-java.sh and
     # referenced by dot_config/Code/User/settings.json.tmpl on Linux.
-    # Bump both places together.
+    # Bump both places together. Windows discovers its JDKs at apply time
+    # (see AppData/Roaming/Code/User/settings.json.tmpl) and needs no pin.
     default = "25.0.4-tem"
     lts = "21.0.12+1.1-tem"

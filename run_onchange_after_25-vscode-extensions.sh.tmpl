@@ -1,0 +1,14 @@
+#!/bin/bash
+# Manifest checksum: {{ include "manifests/vscode-extensions.txt" | sha256sum }}
+set -euo pipefail
+
+if [[ "$(uname -s)" != Darwin ]]; then
+  exit 0
+fi
+
+if [[ "${DOTFILES_SKIP_BREW_BUNDLE:-}" == 1 ]]; then
+  echo "Skipping VS Code extensions for this apply (DOTFILES_SKIP_BREW_BUNDLE=1)."
+  exit 0
+fi
+
+exec "{{ .chezmoi.sourceDir }}/scripts/macos/install-vscode-extensions.sh"

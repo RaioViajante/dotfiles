@@ -1,0 +1,53 @@
+{{- /*
+Windows VS Code user settings. Applies to %APPDATA%\Code\User\settings.json.
+Linux and macOS keep their own files (see .chezmoiignore).
+
+The Java runtimes are discovered at apply time from the Temurin JDKs that
+winget installs under Program Files, so no patch-specific path is committed.
+Re-run `chezmoi apply` after a JDK upgrade to refresh them.
+*/ -}}
+{{- $runtimes := list -}}
+{{- range $major := list "25" "21" -}}
+{{-   $found := glob (printf "%s/Eclipse Adoptium/jdk-%s.*-hotspot" (env "ProgramFiles") $major) -}}
+{{-   if $found -}}
+{{-     $entry := dict "name" (printf "JavaSE-%s" $major) "path" (last $found) -}}
+{{-     if eq $major "25" -}}{{- $entry = set $entry "default" true -}}{{- end -}}
+{{-     $runtimes = append $runtimes $entry -}}
+{{-   end -}}
+{{- end -}}
+{
+  // Managed by chezmoi (Windows only). Formatting behaviour is deliberately
+  // left to each project.
+
+  // Integrated terminal: PowerShell 7 (VS Code lists pwsh as "PowerShell").
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.fontFamily": "'JetBrainsMono Nerd Font', 'JetBrainsMono NF', monospace",
+
+  "editor.formatOnSave": false,
+  "files.autoSave": "off",
+  "editor.codeActionsOnSave": {},
+  "telemetry.telemetryLevel": "off",
+  "redhat.telemetry.enabled": false,
+  "extensions.autoCheckUpdates": false,
+
+  // Show each nested single-child folder on its own line in the Explorer
+  // instead of collapsing them into one "parent/child" row.
+  "explorer.compactFolders": false,
+
+  // Catppuccin Mocha colour theme and the Material icon theme, both from
+  // manifests/vscode-extensions.txt.
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.colorTheme": "Catppuccin Mocha",
+
+  // Temurin 25 is the default JDK; 21 stays available for older projects.
+  "java.configuration.runtimes": {{ $runtimes | toJson }},
+
+  // Copilot is not part of this setup; keep it off everywhere it could
+  // otherwise auto-suggest, including commit messages and the SCM input.
+  "github.copilot.enable": {
+    "*": false,
+    "plaintext": false,
+    "markdown": false,
+    "scminput": false
+  }
+}

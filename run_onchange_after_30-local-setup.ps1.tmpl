@@ -1,0 +1,24 @@
+{{- /*
+Windows counterpart of run_onchange_after_30-local-setup.sh.tmpl: create the
+optional per-machine Git override file. It is never committed.
+*/ -}}
+# Dotfiles revision: {{ include "dot_gitconfig" | sha256sum }}
+$ErrorActionPreference = 'Stop'
+
+# The shared Git identity ships in dot_gitconfig and works immediately.
+# ~/.config/git/local.gitconfig is optional and only for per-machine overrides
+# (a different identity, signing keys, work paths).
+$gitLocal = Join-Path $HOME '.config/git/local.gitconfig'
+New-Item -ItemType Directory -Force -Path (Split-Path $gitLocal) | Out-Null
+if (-not (Test-Path $gitLocal)) { New-Item -ItemType File -Path $gitLocal | Out-Null }
+
+# Nudge, never install: package installation is an explicit, separate step.
+if (-not (Get-Command fnm -ErrorAction Ignore)) {
+    [Console]::Error.WriteLine(@'
+The Windows development toolchain looks incomplete (fnm not found).
+Run the one-time bootstrap to install packages, runtimes, VS Code extensions
+and the Neovim plugins:
+
+    pwsh -File "$(chezmoi source-path)\scripts\windows\bootstrap.ps1"
+'@)
+}

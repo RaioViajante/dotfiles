@@ -1,0 +1,75 @@
+# Curated Windows workstation packages (winget IDs, source: winget).
+# One package per line. Lines starting with '#' and blank lines are ignored.
+# Installed by scripts/windows/10-packages.ps1; only missing packages are installed.
+# No versions are pinned except the two JDK majors, which the project uses
+# deliberately (25 is the default, 21 the alternate). Transitive dependencies
+# are left to winget.
+#
+# Not listed here on purpose (handled by their own steps or intentionally absent):
+#   - Docker Desktop options, Maven, Composer, Node, Rust toolchain: 20-runtimes.ps1
+#   - JetBrainsMono Nerd Font: listed below (per-user font install)
+#   - Visual Studio Build Tools (Rust linker): 20-runtimes.ps1 installs it on request
+#   - Any native database server: databases run in Docker
+#   - Bitwarden: Proton Pass is the password manager for this workstation
+
+# Shell and terminal
+Microsoft.PowerShell
+Microsoft.WindowsTerminal
+Starship.Starship
+ajeetdsouza.zoxide
+junegunn.fzf
+eza-community.eza
+sharkdp.bat
+sharkdp.fd
+BurntSushi.ripgrep.MSVC
+jqlang.jq
+koalaman.shellcheck
+DEVCOM.JetBrainsMonoNerdFont
+
+# Git and dotfiles
+Git.Git
+GitHub.cli
+twpayne.chezmoi
+Gitleaks.Gitleaks
+
+# Editors and IDEs
+Microsoft.VisualStudioCode
+Neovim.Neovim
+JetBrains.IntelliJIDEA
+zig.zig
+
+# Language runtimes and package managers
+Schniz.fnm
+astral-sh.uv
+Rustlang.Rustup
+PHP.PHP.8.5
+EclipseAdoptium.Temurin.25.JDK
+EclipseAdoptium.Temurin.21.JDK
+
+# Containers and WSL
+Microsoft.WSL
+Docker.DockerDesktop
+
+# Development applications
+Postman.Postman
+Oracle.MySQLWorkbench
+
+# Daily applications (accounts are signed in manually)
+Anthropic.Claude
+Discord.Discord
+Notion.Notion
+Spotify.Spotify
+Zen-Team.Zen-Browser
+Mozilla.Firefox.DeveloperEdition
+TorProject.TorBrowser
+Proton.ProtonMail
+Proton.ProtonPass
+Proton.ProtonDrive
+Proton.ProtonVPN
+Proton.ProtonAuthenticator
+
+# Microsoft Store apps ("msstore:" prefix = Store product id, installed with --source msstore).
+# ChatGPT (hosts Codex)
+msstore:9PLM9XGG6VKS
+# WhatsApp
+msstore:9NKSQGP7F2NH

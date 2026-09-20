@@ -1,0 +1,3 @@
+# Keep line endings identical on every platform. Shell scripts and templates must
+# be LF even on a Windows checkout (WSL, chezmoi and CI all read them).
+* text=auto eol=lf

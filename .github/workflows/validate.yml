@@ -41,7 +41,7 @@ jobs:
             README.md Brewfile
             .chezmoi.toml.tmpl .chezmoiignore
             dot_zshrc dot_zprofile dot_gitconfig
-            dot_config/starship.toml
+            dot_config/starship.toml.tmpl
             dot_config/nvim/init.lua
             dot_config/nvim/lua/config/lazy.lua
             dot_config/zsh/options.zsh
@@ -55,12 +55,19 @@ jobs:
             dot_config/Code/User/settings.json.tmpl
             manifests/fedora-packages.txt
             manifests/vscode-extensions.txt
+            manifests/windows-packages.txt
             scripts/lib.sh
             scripts/check-secrets.sh
             scripts/macos/apply-preferences.sh
             scripts/macos/macos-defaults.sh
             scripts/macos/register-jdks.sh
+            scripts/macos/install-vscode-extensions.sh
             scripts/fedora/bootstrap.sh
+            scripts/windows/bootstrap.ps1
+            Documents/PowerShell/Microsoft.PowerShell_profile.ps1
+            AppData/Roaming/Code/User/settings.json.tmpl
+            AppData/Local/nvim/init.lua.tmpl
+            .gitattributes
           )
           for path in "${required[@]}"; do
             test -e "$path" || { echo "Missing required path: $path" >&2; exit 1; }
@@ -82,7 +89,7 @@ jobs:
           for file in scripts/*.sh scripts/*/*.sh; do
             bash -n "$file"
           done
-          for tmpl in run_*.tmpl; do
+          for tmpl in run_*.sh.tmpl; do
             rendered="$(chezmoi execute-template --source "$PWD" < "$tmpl")"
             [ -z "$rendered" ] || printf '%s\n' "$rendered" | bash -n
           done
@@ -184,3 +191,77 @@ jobs:
             python3 -c 'import json,re,sys; json.loads(re.sub(r"//.*","",open(sys.argv[1]).read()))' \
               "$dest/.config/Code/User/settings.json"
           fi
+
+  validate-windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Install chezmoi
+        run: choco install chezmoi --no-progress -y
+
+      - name: PowerShell syntax
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $files = Get-ChildItem -Recurse -File -Include *.ps1 |
+            Where-Object { $_.FullName -notmatch '[\\/]\.git[\\/]' }
+          foreach ($file in $files) {
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($file.FullName, [ref]$null, [ref]$errors) | Out-Null
+            if ($errors) { $errors | ForEach-Object { Write-Error "$($file.Name): $($_.Message)" } }
+            else { Write-Host "ok $($file.Name)" }
+          }
+
+      - name: Profile loads without optional tools
+        run: |
+          $ErrorActionPreference = 'Stop'
+          # A stripped PATH proves every optional CLI is guarded.
+          $profilePath = Join-Path $env:GITHUB_WORKSPACE 'Documents\PowerShell\Microsoft.PowerShell_profile.ps1'
+          $env:Path = "$PSHOME;$env:SystemRoot\System32"
+          pwsh -NoLogo -NoProfile -Command ". '$profilePath'; if ($Error) { $Error; exit 1 }"
+          if ($LASTEXITCODE) { throw 'the profile reported errors with no optional tools installed' }
+
+      - name: Manifests
+        run: |
+          $ErrorActionPreference = 'Stop'
+          foreach ($name in 'windows-packages.txt', 'vscode-extensions.txt') {
+            $entries = Get-Content "manifests/$name" | ForEach-Object { $_.Trim() } | Where-Object { $_ -and -not $_.StartsWith('#') }
+            if (-not $entries) { throw "empty manifest: $name" }
+            $dupes = $entries | Group-Object { $_.ToLowerInvariant() } | Where-Object Count -gt 1
+            if ($dupes) { throw "duplicate entries in ${name}: $($dupes.Name -join ', ')" }
+          }
+          $packages = Get-Content manifests/windows-packages.txt | Where-Object { $_ -and -not $_.TrimStart().StartsWith('#') }
+          if ($packages -match 'bitwarden') { throw 'Bitwarden must not be a Windows package' }
+
+      - name: Simulate chezmoi init + apply for Windows
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $work = Join-Path $env:RUNNER_TEMP 'cz'
+          New-Item -ItemType Directory -Force "$work\dest" | Out-Null
+          function cz {
+            chezmoi --config "$work\chezmoi.toml" --source $env:GITHUB_WORKSPACE --destination "$work\dest" --persistent-state "$work\state.boltdb" @args
+            if ($LASTEXITCODE) { throw "chezmoi $args failed" }
+          }
+          cz init
+          cz apply --exclude=scripts,encrypted
+          # Applying twice must be a no-op.
+          cz apply --exclude=scripts,encrypted
+          if (cz diff --exclude=scripts,encrypted) { throw 'chezmoi diff is not empty after apply' }
+          $expected = 'Documents\PowerShell\Microsoft.PowerShell_profile.ps1', 'AppData\Roaming\Code\User\settings.json',
+            'AppData\Local\nvim\init.lua', '.config\starship.toml'
+          foreach ($target in $expected) {
+            if (-not (Test-Path "$work\dest\$target")) { throw "missing target: $target" }
+          }
+          foreach ($unwanted in '.zshrc', '.config\zsh', '.config\nvim', 'Library') {
+            if (Test-Path "$work\dest\$unwanted") { throw "Unix-only target applied on Windows: $unwanted" }
+          }
+          # The VS Code settings must be valid JSONC.
+          $json = (Get-Content "$work\dest\AppData\Roaming\Code\User\settings.json" -Raw) -replace '(?m)^\s*//.*$', ''
+          $null = $json | ConvertFrom-Json
+          if ((Get-Content "$work\dest\.config\starship.toml" -Raw) -notmatch 'scan_timeout = 100') {
+            throw 'Windows starship scan_timeout must be 100'
+          }

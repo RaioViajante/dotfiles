@@ -1,7 +1,7 @@
 # dotfiles
 
-An explicit, fast, reproducible development environment for **macOS** and
-**Fedora Workstation**, managed with [chezmoi](https://chezmoi.io). No large
+An explicit, fast, reproducible development environment for **macOS**,
+**Fedora Workstation** and **Windows 11**, managed with [chezmoi](https://chezmoi.io). No large
 shell frameworks, no stored credentials.
 
 This repository is the *executable* half of the setup: shell, prompt, Git
@@ -15,21 +15,24 @@ in the separate **workstation-setup** repository and is not duplicated here.
 | --- | --- | --- | --- | --- |
 | macOS (Apple Silicon) | Homebrew (`Brewfile`) | `node@24` (Homebrew) | `openjdk@25` default + `openjdk@21` (Homebrew) | Homebrew paths, `java_home` |
 | Fedora Workstation | `dnf` + curated manifest | fnm + Node 24 LTS | SDKMAN (Temurin 25 / 21) | fnm, pnpm, SDKMAN |
+| Windows 11 (x64) | `winget` + curated manifest | fnm + Node 24 LTS | winget Temurin 25 default + 21, `jdk` switcher | PowerShell 7, fnm, zoxide, Starship |
 
-Everything shared between the two is written once; platform differences are
-isolated in small chezmoi templates keyed on `.chezmoi.os`.
+Everything shared between the platforms is written once; platform differences
+are isolated in small chezmoi templates keyed on `.chezmoi.os` and, for Windows,
+in source paths that only exist there (`Documents/`, `AppData/`).
 
 ## Layout
 
 ```text
 .
 ├── .chezmoi.toml.tmpl              # chezmoi config (no prompts)
-├── .chezmoiignore                  # keeps README/Brewfile/scripts/manifests in source only
-├── Brewfile                        # macOS package manifest (packages + VS Code extensions)
+├── .chezmoiignore                  # keeps README/Brewfile/scripts/manifests in source only; per-OS targets
+├── .gitattributes                  # LF everywhere, including Windows checkouts
+├── Brewfile                        # macOS package manifest (formulae and casks)
 ├── dot_zshrc / dot_zprofile        # Zsh entry points
 ├── dot_gitconfig                   # Git behaviour + shared identity (noreply email)
 ├── dot_config/
-│   ├── starship.toml               # shared prompt
+│   ├── starship.toml.tmpl          # shared prompt (scan_timeout is per OS)
 │   ├── nvim/                        # Neovim, modular Lua config      (shared)
 │   │   ├── init.lua                 # entry point: leader keys, module loading
 │   │   ├── lua/config/             # options, keymaps, autocmds, lazy bootstrap
@@ -45,17 +48,31 @@ isolated in small chezmoi templates keyed on `.chezmoi.os`.
 │   │   ├── integrations.zsh.tmpl   # fnm / pnpm / SDKMAN / fzf  (per OS)
 │   │   └── tools.zsh               # zoxide + starship          (shared)
 │   └── Code/User/settings.json.tmpl   # VS Code settings        (Linux only)
+├── Documents/PowerShell/Microsoft.PowerShell_profile.ps1   # PowerShell 7 profile (Windows only)
+├── AppData/
+│   ├── Roaming/Code/User/settings.json.tmpl        # VS Code settings   (Windows only)
+│   └── Local/nvim/                 # Neovim on Windows: one include stub per shared file
 ├── private_Library/.../Code/User/settings.json     # VS Code settings   (macOS only)
 ├── private_Library/.../iTerm2/DynamicProfiles/raioviajante.json # iTerm2 profile (macOS only)
 ├── manifests/
 │   ├── fedora-packages.txt         # curated dnf packages
 │   ├── mas-apps.txt                # Mac App Store apps (macOS)
-│   └── vscode-extensions.txt       # curated VS Code extensions
+│   ├── windows-packages.txt        # curated winget packages (Windows)
+│   └── vscode-extensions.txt       # canonical VS Code extensions (all platforms)
 ├── scripts/
 │   ├── lib.sh                      # shared bash helpers
 │   ├── check-secrets.sh            # pre-commit secret scan
+│   ├── windows/                    # idempotent Windows bootstrap (PowerShell 7)
+│   │   ├── bootstrap.ps1           # runs 10..50 in order (-Only, -DryRun)
+│   │   ├── lib.ps1                 # shared helpers
+│   │   ├── 10-packages.ps1         # winget packages from the manifest
+│   │   ├── 20-runtimes.ps1         # fnm + Node 24, pnpm, Rust, uv Python, Maven, Composer
+│   │   ├── 30-vscode-extensions.ps1 # extensions from the manifest
+│   │   ├── 40-neovim.ps1           # plugins, Tree-sitter parsers, Mason tools
+│   │   └── 50-terminal.ps1         # Windows Terminal baseline
 │   ├── macos/
 │   │   ├── apply-preferences.sh    # opt-in appearance + Dock + Finder personalization
+│   │   ├── install-vscode-extensions.sh # extensions from the manifest (run by chezmoi)
 │   │   ├── macos-defaults.sh       # opt-in macOS file-handling defaults
 │   │   ├── register-jdks.sh        # symlink Homebrew JDKs into /Library/Java
 │   │   ├── setup-startup.sh        # Login Items + Homebrew MySQL service
@@ -73,12 +90,16 @@ isolated in small chezmoi templates keyed on `.chezmoi.os`.
 │       └── 70-gnome.sh             # gsettings preferences + shortcuts
 ├── run_once_before_10-install-homebrew.sh.tmpl   # macOS only
 ├── run_onchange_before_20-brew-bundle.sh.tmpl    # macOS only
-└── run_onchange_after_30-local-setup.sh.tmpl     # both: local dirs + git identity stub
+├── run_onchange_after_25-vscode-extensions.sh.tmpl # macOS only: extensions from the manifest
+├── run_onchange_after_30-local-setup.sh.tmpl     # macOS + Linux: local dirs + git identity stub
+└── run_onchange_after_30-local-setup.ps1.tmpl    # Windows: git identity stub + bootstrap hint
 ```
 
 Files prefixed `dot_` are applied to `$HOME`. `README.md`, `Brewfile`,
 `manifests/`, `scripts/` and `.github/` stay in the chezmoi source state
-(`.chezmoiignore`).
+(`.chezmoiignore`). On Windows the Zsh files, `dot_config/nvim` (Neovim lives in
+`%LOCALAPPDATA%\nvim` there) and the shell run scripts are ignored; on macOS and
+Linux the `Documents/` and `AppData/` trees are ignored.
 
 ## Bootstrap
 
@@ -129,6 +150,72 @@ It is idempotent — safe to re-run — and each step can also be run alone
 repositories, the curated package set, the Node and Java toolchains, Docker
 Engine CE, VS Code with the curated extensions, and the GNOME preferences.
 
+### Windows 11
+
+Prerequisites (one time, by hand):
+
+- Windows 11 x64 with `winget` (App Installer), signed in with your own account.
+- PowerShell 7, Git and chezmoi, installed from a normal Windows PowerShell prompt:
+
+  ```powershell
+  winget install --id Microsoft.PowerShell --source winget
+  winget install --id Git.Git --source winget
+  winget install --id twpayne.chezmoi --source winget
+  ```
+
+- WSL 2 with Ubuntu, from an elevated prompt (may need a reboot):
+  `wsl --install -d Ubuntu-24.04`. Docker Desktop uses the WSL 2 backend and owns
+  the Docker engine: never install `docker.io` or Docker Engine inside Ubuntu.
+
+Then, from PowerShell 7 (`pwsh`), in a normal (non-elevated) session:
+
+```powershell
+git clone https://github.com/RaioViajante/dotfiles.git $HOME\dotfiles
+& $HOME\dotfiles\scripts\windows\bootstrap.ps1        # packages, runtimes, extensions
+chezmoi init --source $HOME\dotfiles --apply           # configuration files
+& $HOME\dotfiles\scripts\windows\bootstrap.ps1        # second pass: Neovim state, terminal
+```
+
+`chezmoi init --source` records the working copy as chezmoi's source directory, so
+later `chezmoi diff` / `chezmoi apply` work without extra flags. The bootstrap is
+idempotent; `-DryRun` reports without changing anything, `-Only 40` runs one step,
+and `-InstallBuildTools` also installs the Visual Studio Build Tools that Rust needs
+for linking (large, shows an elevation prompt). Installers that need elevation
+request it themselves; do not run the bootstrap as administrator.
+
+Design notes:
+
+- **Packages:** `manifests/windows-packages.txt` lists human-readable winget IDs
+  (never a raw `winget export`); only missing packages are installed and no patch
+  versions are pinned, except the two JDK majors. `msstore:` entries are Store
+  product IDs. Docker Desktop is installed per user with `--backend=wsl-2`.
+- **Node:** fnm installs Node 24 and the bootstrap puts fnm's stable
+  `aliases\default` junction on the User `PATH`, so GUI programs (VS Code, IDEs)
+  find Node without loading the PowerShell profile. The temporary
+  `fnm_multishells` paths are never persisted. pnpm comes from Corepack.
+- **Python:** `uv` installs Python 3.14 and its `python.exe` shims in `~\.local\bin`.
+- **Java:** winget installs Temurin 25 (machine default) and 21. Run `jdk 21` /
+  `jdk 25` in PowerShell to switch the current session only (`jdk` alone lists
+  them); no machine `PATH` rewrite, no SDKMAN. VS Code's
+  `java.configuration.runtimes` is generated when chezmoi renders the settings
+  template, by discovering the installed JDKs, so no patch-specific path is
+  committed. Re-run `chezmoi apply` after a JDK upgrade to refresh it.
+- **Rust:** `rustup` with the MSVC toolchain. Linking needs the Visual Studio
+  Build Tools C++ workload (`-InstallBuildTools`); the bootstrap warns if it is missing.
+- **Maven / Composer:** not in winget; installed from Apache and getcomposer.org
+  with the published checksum verified before use.
+- **Windows Terminal:** not managed by chezmoi. Terminal rewrites its
+  `settings.json` and the file is per-machine state, so `50-terminal.ps1` only
+  ensures three keys (default profile = PowerShell 7, font =
+  JetBrainsMono Nerd Font, starting directory = home) and backs up the file first.
+- **Starship:** the shared config is a template; only `scan_timeout` differs
+  (100 ms on Windows, where 20 ms produces scan-timeout warnings).
+- **Line endings:** `.gitattributes` forces LF, so Windows checkouts stay
+  compatible with WSL, chezmoi and CI.
+- **Project location:** `C:\Users\<you>\Developer` is the primary directory for
+  Windows-native work. Projects that become strongly Linux/filesystem dependent
+  may later live inside the Ubuntu WSL filesystem; nothing here moves them.
+
 ### macOS restore order
 
 1. Install macOS and the Xcode Command Line Tools (`xcode-select --install`).
@@ -162,13 +249,16 @@ After pulling a change that touches `.chezmoi.toml.tmpl`, run `chezmoi init`
 once (it asks nothing).
 
 On Fedora, re-run `"$(chezmoi source-path)/scripts/fedora/bootstrap.sh"` (or a
-single step) to pick up manifest or toolchain changes.
+single step) to pick up manifest or toolchain changes. On Windows, re-run
+`scripts\windows\bootstrap.ps1` (or `-Only <step>`) for the same purpose.
 
 ## What is shared vs platform-specific
 
 **Shared:** Zsh options, history, completion, aliases, helper functions,
 Starship, zoxide, Git behaviour and identity (noreply email), editor conventions,
-the Neovim configuration (`dot_config/nvim/`).
+the Neovim configuration (`dot_config/nvim/`, also applied on Windows through
+`AppData/Local/nvim/` include stubs), the VS Code extension list
+(`manifests/vscode-extensions.txt`).
 
 **macOS-specific:** Homebrew (`Brewfile` packages + `vscode` extensions,
 `dot_zprofile`, brew run scripts), `openjdk@25` `JAVA_HOME` with the `jdk()`
@@ -182,11 +272,22 @@ Icon Theme + Catppuccin Mocha colour theme), the iTerm2 Dynamic Profile
 `scripts/fedora/`, fnm + pnpm + SDKMAN shell integration, the Linux VS Code
 `settings.json`.
 
+**Windows-specific:** `manifests/windows-packages.txt`, everything under
+`scripts/windows/`, the PowerShell 7 profile (a native port of the shared aliases
+and helpers, with the same fnm / zoxide / Starship integrations, plus the `jdk`
+switcher), the Windows VS Code `settings.json` template, and the `AppData/Local/nvim`
+stubs. The profile drops the built-in `gc`, `gp` and `gl` aliases so the git
+shortcuts of the same name work. macOS-only `jdk()`, Podman `pods`, zsh
+key bindings and fzf key bindings (Ctrl-T / Ctrl-R / Alt-C) are not ported;
+`proj` and `FZF_DEFAULT_OPTS` are. `extract` supports tar, tar.gz/bz2/xz, zip and
+7z through Windows' bundled bsdtar and a bare `.gz` through .NET; a bare `.bz2`
+reports "unsupported archive" because stock Windows has no tool for it.
+
 ## Neovim
 
-A modular Lua configuration in `dot_config/nvim/`, shared between both platforms.
-Installed by the `Brewfile` on macOS and `manifests/fedora-packages.txt` on
-Fedora. VS Code stays the primary editor; Neovim is the terminal editor and the
+A modular Lua configuration in `dot_config/nvim/`, shared between all platforms.
+Installed by the `Brewfile` on macOS, `manifests/fedora-packages.txt` on
+Fedora and `manifests/windows-packages.txt` on Windows. VS Code stays the primary editor; Neovim is the terminal editor and the
 `EDITOR` fallback when `code` is absent.
 
 - **Plugin manager:** [lazy.nvim](https://github.com/folke/lazy.nvim),
@@ -208,8 +309,38 @@ Fedora. VS Code stays the primary editor; Neovim is the terminal editor and the
   icons.
 - **After `:Lazy update`:** re-stage the lockfile with
   `chezmoi re-add ~/.config/nvim/lazy-lock.json`, then commit.
+- **Windows:** Neovim reads `%LOCALAPPDATA%\nvim`, not `~/.config/nvim`. Each
+  shared file has a one-line stub under `AppData/Local/nvim/` that `include`s it,
+  so the configuration exists once; add a stub when you add a file (CI checks the
+  required entry points). After `:Lazy update` on Windows, copy
+  `%LOCALAPPDATA%\nvim\lazy-lock.json` over `dot_config/nvim/lazy-lock.json` and commit.
+  Tree-sitter parsers are compiled with Zig (`zig.zig`), so no Visual Studio
+  developer environment is needed. `40-neovim.ps1` installs them **one at a time**
+  with the config bypassed: the config's own `ensure_installed` starts every build at
+  once, and concurrent cold-cache Zig runs deadlock. Plugins, parsers and Mason
+  tools are rebuilt state, never committed. Expected `:checkhealth` warnings, left
+  alone on purpose: no Python `neovim` provider, no `tree-sitter` CLI, no
+  `vim.pack` lockfile.
 
 ## Manual steps (never automated)
+
+Windows (in addition to the applicable items below):
+
+- Sign-ins are always manual: GitHub (`gh auth login --hostname github.com --web
+  --git-protocol ssh`), Proton, Discord, Spotify, JetBrains, Postman, Notion,
+  Claude, ChatGPT, Docker Hub. VS Code Settings Sync stays off.
+- SSH key creation and registration (one key per machine, never automated).
+- WSL 2 and the Ubuntu distribution (elevated `wsl --install`, possible reboot),
+  then Docker Desktop's first launch and Settings -> Resources -> WSL Integration
+  for `Ubuntu-24.04`. Keep "start at login" off; Kubernetes and Windows containers
+  stay disabled.
+- Windows Terminal must have been opened once before `50-terminal.ps1` can find
+  its settings file.
+- Intentionally not installed: Bitwarden (Proton Pass is the password manager),
+  any native database server (databases run in Docker), Podman, Docker Engine
+  inside WSL.
+- Intentionally not managed: Windows Terminal's full settings, browser
+  profiles, SSH keys, credentials, Docker/WSL state, and application data.
 
 - GitHub sign-in: `gh auth login --hostname github.com --web --git-protocol ssh`
 - SSH key creation and registration (one dedicated key per machine):
@@ -325,6 +456,9 @@ reproducible user-level configuration step, it belongs here.
 repository structure, rendered Zsh/Bash syntax, ShellCheck, chezmoi template and
 manifest validation, secret and machine-path scan, a Portuguese-text language
 audit, a trailing-whitespace check, and an isolated `chezmoi apply` per platform.
+A separate Windows job checks PowerShell syntax, that the profile loads without any
+optional tool installed, the Windows manifests, and an isolated `chezmoi apply`
+(including that no Unix-only target is written and the settings are valid JSONC).
 
 ## License
 

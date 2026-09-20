@@ -105,21 +105,6 @@ cask "protonvpn"
 # sign-in stays manual, same as the rest of the Proton ecosystem above.
 cask "proton-mail-bridge"
 
-# VS Code extensions. Top-level only: extension packs pull in their own members
-# (Java, Spring Boot, Pylance, debuggers) automatically, so those are not listed.
-# Installed by `brew bundle` through run_onchange_before_20-brew-bundle.sh.tmpl.
-vscode "angular.ng-template"
-vscode "dbaeumer.vscode-eslint"
-vscode "esbenp.prettier-vscode"
-vscode "vscjava.vscode-java-pack"
-vscode "vmware.vscode-boot-dev-pack"
-vscode "ms-python.python"
-vscode "ms-azuretools.vscode-containers"
-# Official Claude Code extension (IDE integration for the Claude Code CLI).
-vscode "anthropic.claude-code"
-
-# Editor themes, matching the manual choice on this machine: the Material
-# file/folder icon theme and the Catppuccin colour theme (Mocha variant, set in
-# the managed settings.json). One of each so the look stays consistent.
-vscode "PKief.material-icon-theme"
-vscode "catppuccin.catppuccin-vsc"
+# VS Code extensions are not listed here: the canonical list for every platform is
+# manifests/vscode-extensions.txt, installed on macOS by
+# scripts/macos/install-vscode-extensions.sh (run by chezmoi after this bundle).

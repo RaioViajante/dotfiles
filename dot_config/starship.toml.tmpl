@@ -1,6 +1,7 @@
 add_newline = false
 command_timeout = 800
-scan_timeout = 20
+# Windows directory scans are slower (Defender); 20 ms produces timeout warnings there.
+scan_timeout = {{ if eq .chezmoi.os "windows" }}100{{ else }}20{{ end }}
 
 [directory]
 truncation_length = 4
