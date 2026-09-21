@@ -239,10 +239,10 @@ jobs:
             if ($LASTEXITCODE) { throw "chezmoi $args failed" }
           }
           cz init
-          cz apply --exclude=scripts,encrypted
+          cz apply '--exclude=scripts,encrypted'
           # Applying twice must be a no-op.
-          cz apply --exclude=scripts,encrypted
-          if (cz diff --exclude=scripts,encrypted) { throw 'chezmoi diff is not empty after apply' }
+          cz apply '--exclude=scripts,encrypted'
+          if (cz diff '--exclude=scripts,encrypted') { throw 'chezmoi diff is not empty after apply' }
           $expected = 'Documents\PowerShell\Microsoft.PowerShell_profile.ps1', 'AppData\Roaming\Code\User\settings.json',
             'AppData\Local\nvim\init.lua', '.config\starship.toml'
           foreach ($target in $expected) {
