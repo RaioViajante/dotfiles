@@ -214,7 +214,7 @@ jobs:
           # A stripped PATH proves every optional CLI is guarded.
           $profilePath = Join-Path $env:GITHUB_WORKSPACE 'Documents\PowerShell\Microsoft.PowerShell_profile.ps1'
           $env:Path = "$PSHOME;$env:SystemRoot\System32"
-          pwsh -NoLogo -NoProfile -Command ". '$profilePath'; if ($Error) { $Error; exit 1 }"
+          pwsh -NoLogo -NoProfile -Command ". '$profilePath'; if (`$Error) { `$Error; exit 1 }"
           if ($LASTEXITCODE) { throw 'the profile reported errors with no optional tools installed' }
 
       - name: Manifests
