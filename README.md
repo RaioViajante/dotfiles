@@ -169,7 +169,7 @@ Design notes:
   ensures three keys (default profile = PowerShell 7, font =
   JetBrainsMono Nerd Font, starting directory = home) and backs up the file first.
 - **Starship:** the shared config is a template; only `scan_timeout` differs
-  (100 ms on Windows, where 20 ms produces scan-timeout warnings).
+  (500 ms on Windows, where shorter timeouts produce scan-timeout warnings).
 - **Line endings:** `.gitattributes` forces LF, so Windows checkouts stay
   compatible with WSL, chezmoi and CI.
 - **Project location:** `C:\Users\<you>\Developer` is the primary directory for

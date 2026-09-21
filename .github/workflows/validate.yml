@@ -254,6 +254,6 @@ jobs:
           # The VS Code settings must be valid JSONC.
           $json = (Get-Content "$work\dest\AppData\Roaming\Code\User\settings.json" -Raw) -replace '(?m)^\s*//.*$', ''
           $null = $json | ConvertFrom-Json
-          if ((Get-Content "$work\dest\.config\starship.toml" -Raw) -notmatch 'scan_timeout = 100') {
-            throw 'Windows starship scan_timeout must be 100'
+          if ((Get-Content "$work\dest\.config\starship.toml" -Raw) -notmatch 'scan_timeout = 500') {
+            throw 'Windows starship scan_timeout must be 500'
           }
