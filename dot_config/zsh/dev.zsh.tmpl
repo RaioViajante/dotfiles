@@ -62,10 +62,4 @@ if (( $+commands[brew] )); then
   alias mysql-restart='brew services restart mysql'
   alias mysql-status='brew services list | grep -E "^mysql[[:space:]]"'
 fi
-{{ else if eq .chezmoi.os "linux" -}}
-# Linux: JDKs are managed by SDKMAN (initialised in integrations.zsh).
-#   sdk list java            show installable and installed versions
-#   sdk use java 21.0.12+1.1-tem   switch the current shell
-#   sdk default java 25.0.4-tem    change the machine default
-#   sdk env / .sdkmanrc      pin a per-project JDK (not enabled automatically)
 {{ end -}}

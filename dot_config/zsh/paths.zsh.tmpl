@@ -39,16 +39,5 @@ elif [[ -d "$JAVA_21_HOME" ]]; then
 fi
 
 # pnpm is installed by Homebrew, so PNPM_HOME is intentionally not added.
-{{ else if eq .chezmoi.os "linux" -}}
-# fnm (Node version manager) is installed under the user data directory.
-[[ -d "$HOME/.local/share/fnm" ]] && path=("$HOME/.local/share/fnm" $path)
-
-# pnpm global binaries (Corepack-managed pnpm). Both layouts are covered:
-# pnpm places binaries in $PNPM_HOME, older setups use $PNPM_HOME/bin.
-export PNPM_HOME="$HOME/.local/share/pnpm"
-[[ -d "$PNPM_HOME" ]] && path=("$PNPM_HOME" $path)
-[[ -d "$PNPM_HOME/bin" ]] && path=("$PNPM_HOME/bin" $path)
-
-# JDKs are managed by SDKMAN, which prepends its own shims in integrations.zsh.
 {{ end -}}
 export PATH

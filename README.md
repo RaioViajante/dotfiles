@@ -44,9 +44,7 @@ in source paths that only exist there (`Documents/`, `AppData/`).
 │   │   ├── aliases.zsh             # aliases                    (shared)
 │   │   ├── functions.zsh           # helper functions          (shared)
 │   │   ├── dev.zsh.tmpl            # EDITOR/PAGER + macOS jdk() (per OS)
-│   │   ├── integrations.zsh.tmpl   # fnm / pnpm / SDKMAN / fzf  (per OS)
 │   │   └── tools.zsh               # zoxide + starship          (shared)
-│   └── Code/User/settings.json.tmpl   # VS Code settings        (Linux only)
 ├── Documents/PowerShell/Microsoft.PowerShell_profile.ps1   # PowerShell 7 profile (Windows only)
 ├── AppData/
 │   ├── Roaming/Code/User/settings.json.tmpl        # VS Code settings   (Windows only)
@@ -80,15 +78,15 @@ in source paths that only exist there (`Documents/`, `AppData/`).
 ├── run_once_before_10-install-homebrew.sh.tmpl   # macOS only
 ├── run_onchange_before_20-brew-bundle.sh.tmpl    # macOS only
 ├── run_onchange_after_25-vscode-extensions.sh.tmpl # macOS only: extensions from the manifest
-├── run_onchange_after_30-local-setup.sh.tmpl     # macOS + Linux: local dirs + git identity stub
+├── run_onchange_after_30-local-setup.sh.tmpl     # macOS: local dirs + git identity stub
 └── run_onchange_after_30-local-setup.ps1.tmpl    # Windows: git identity stub + bootstrap hint
 ```
 
 Files prefixed `dot_` are applied to `$HOME`. `README.md`, `Brewfile`,
 `manifests/`, `scripts/` and `.github/` stay in the chezmoi source state
 (`.chezmoiignore`). On Windows the Zsh files, `dot_config/nvim` (Neovim lives in
-`%LOCALAPPDATA%\nvim` there) and the shell run scripts are ignored; on macOS and
-Linux the `Documents/` and `AppData/` trees are ignored.
+`%LOCALAPPDATA%\nvim` there) and the shell run scripts are ignored; on macOS the
+`Documents/` and `AppData/` trees are ignored.
 
 ## Bootstrap
 
@@ -126,6 +124,8 @@ Prerequisites (one time, by hand):
 - WSL 2 with Ubuntu, from an elevated prompt (may need a reboot):
   `wsl --install -d Ubuntu-24.04`. Docker Desktop uses the WSL 2 backend and owns
   the Docker engine: never install `docker.io` or Docker Engine inside Ubuntu.
+  Ubuntu under WSL is Windows infrastructure only; it is not managed by these
+  dotfiles.
 
 Then, from PowerShell 7 (`pwsh`), in a normal (non-elevated) session:
 
@@ -400,10 +400,12 @@ reproducible user-level configuration step, it belongs here.
 
 ## CI
 
-`.github/workflows/validate.yml` runs on macOS and Linux for every push and PR:
-repository structure, rendered Zsh/Bash syntax, ShellCheck, chezmoi template and
-manifest validation, secret and machine-path scan, a Portuguese-text language
-audit, a trailing-whitespace check, and an isolated `chezmoi apply` per platform.
+`.github/workflows/validate.yml` runs on macOS and Ubuntu for every push and PR.
+The Ubuntu runner is only a lint host (repository structure, ShellCheck, secret
+and machine-path scan, a Portuguese-text language audit and a trailing-whitespace
+check); Linux is not a supported dotfiles target. The macOS job additionally
+renders Zsh/Bash syntax, validates the chezmoi templates and manifests, and runs
+an isolated `chezmoi apply`.
 A separate Windows job checks PowerShell syntax, that the profile loads without any
 optional tool installed, the Windows manifests, and an isolated `chezmoi apply`
 (including that no Unix-only target is written and the settings are valid JSONC).

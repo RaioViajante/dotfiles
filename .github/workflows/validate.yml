@@ -29,9 +29,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y ripgrep shellcheck zsh
-          sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin"
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          sudo apt-get install -y ripgrep shellcheck
 
       - name: Validate repository structure
         shell: bash
@@ -50,9 +48,7 @@ jobs:
             dot_config/zsh/aliases.zsh
             dot_config/zsh/functions.zsh
             dot_config/zsh/dev.zsh.tmpl
-            dot_config/zsh/integrations.zsh.tmpl
             dot_config/zsh/tools.zsh
-            dot_config/Code/User/settings.json.tmpl
             manifests/vscode-extensions.txt
             manifests/windows-packages.txt
             scripts/lib.sh
@@ -71,7 +67,8 @@ jobs:
             test -e "$path" || { echo "Missing required path: $path" >&2; exit 1; }
           done
 
-      - name: Render and syntax-check shell for this platform
+      - name: Render and syntax-check shell (macOS)
+        if: runner.os == 'macOS'
         shell: bash
         run: |
           set -euo pipefail
@@ -102,7 +99,8 @@ jobs:
           shellcheck -x -e SC1091 scripts/lib.sh scripts/check-secrets.sh \
             scripts/macos/*.sh
 
-      - name: Validate chezmoi templates and manifests
+      - name: Validate chezmoi templates and manifests (macOS)
+        if: runner.os == 'macOS'
         shell: bash
         run: |
           set -euo pipefail
@@ -171,7 +169,8 @@ jobs:
             exit 1
           fi
 
-      - name: Simulate chezmoi init + apply for this platform
+      - name: Simulate chezmoi init + apply (macOS)
+        if: runner.os == 'macOS'
         shell: bash
         run: |
           set -euo pipefail
@@ -184,11 +183,6 @@ jobs:
           # Applying twice must be a no-op.
           cz apply --exclude=scripts,encrypted
           test -z "$(cz diff --exclude=scripts,encrypted)"
-          # On Linux the VS Code settings are managed; confirm valid JSON.
-          if [ "$RUNNER_OS" = "Linux" ]; then
-            python3 -c 'import json,re,sys; json.loads(re.sub(r"//.*","",open(sys.argv[1]).read()))' \
-              "$dest/.config/Code/User/settings.json"
-          fi
 
   validate-windows:
     runs-on: windows-latest

@@ -19,10 +19,3 @@ sourceDir = {{ .chezmoi.sourceDir | toJson }}
 {{ end -}}
 [diff]
     exclude = ["scripts"]
-
-[data.java]
-    # Eclipse Temurin versions referenced by
-    # dot_config/Code/User/settings.json.tmpl on Linux. Keep them in sync.
-    # Windows discovers its JDKs at apply time (see AppData/Roaming/Code/User/settings.json.tmpl) and needs no pin.
-    default = "25.0.4-tem"
-    lts = "21.0.12+1.1-tem"
