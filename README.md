@@ -1,7 +1,7 @@
 # dotfiles
 
-An explicit, fast, reproducible development environment for **macOS**,
-**Fedora Workstation** and **Windows 11**, managed with [chezmoi](https://chezmoi.io). No large
+An explicit, fast, reproducible development environment for **macOS** and
+**Windows 11**, managed with [chezmoi](https://chezmoi.io). No large
 shell frameworks, no stored credentials.
 
 This repository is the *executable* half of the setup: shell, prompt, Git
@@ -14,7 +14,6 @@ in the separate **workstation-setup** repository and is not duplicated here.
 | Platform | Package manager | Node | Java | Shell integration |
 | --- | --- | --- | --- | --- |
 | macOS (Apple Silicon) | Homebrew (`Brewfile`) | `node@24` (Homebrew) | `openjdk@25` default + `openjdk@21` (Homebrew) | Homebrew paths, `java_home` |
-| Fedora Workstation | `dnf` + curated manifest | fnm + Node 24 LTS | SDKMAN (Temurin 25 / 21) | fnm, pnpm, SDKMAN |
 | Windows 11 (x64) | `winget` + curated manifest | fnm + Node 24 LTS | winget Temurin 25 default + 21, `jdk` switcher | PowerShell 7, fnm, zoxide, Starship |
 
 Everything shared between the platforms is written once; platform differences
@@ -55,7 +54,6 @@ in source paths that only exist there (`Documents/`, `AppData/`).
 ├── private_Library/.../Code/User/settings.json     # VS Code settings   (macOS only)
 ├── private_Library/.../iTerm2/DynamicProfiles/raioviajante.json # iTerm2 profile (macOS only)
 ├── manifests/
-│   ├── fedora-packages.txt         # curated dnf packages
 │   ├── mas-apps.txt                # Mac App Store apps (macOS)
 │   ├── windows-packages.txt        # curated winget packages (Windows)
 │   └── vscode-extensions.txt       # canonical VS Code extensions (all platforms)
@@ -79,15 +77,6 @@ in source paths that only exist there (`Documents/`, `AppData/`).
 │   │   ├── install-mas-apps.sh     # Mac App Store apps from manifests/mas-apps.txt
 │   │   ├── setup-claude-config.sh  # merge-only safe Claude Code settings
 │   │   └── setup-proton-mcp.sh     # register proton-mail in Claude Code / Codex
-│   └── fedora/                     # idempotent Fedora bootstrap (run after apply)
-│       ├── bootstrap.sh            # runs 10..70 in order
-│       ├── 10-repositories.sh      # RPM Fusion, VS Code, Docker CE repos
-│       ├── 20-packages.sh          # dnf install from the manifest
-│       ├── 30-node.sh              # fnm, Node 24, Corepack, pnpm, Angular CLI
-│       ├── 40-java.sh              # SDKMAN, Temurin 25 + 21, Maven
-│       ├── 50-docker.sh            # Docker Engine CE + group
-│       ├── 60-vscode-extensions.sh # VS Code + curated extensions
-│       └── 70-gnome.sh             # gsettings preferences + shortcuts
 ├── run_once_before_10-install-homebrew.sh.tmpl   # macOS only
 ├── run_onchange_before_20-brew-bundle.sh.tmpl    # macOS only
 ├── run_onchange_after_25-vscode-extensions.sh.tmpl # macOS only: extensions from the manifest
@@ -120,35 +109,6 @@ Then, once, register the Homebrew JDKs with macOS (admin password required):
 ```sh
 "$(chezmoi source-path)/scripts/macos/register-jdks.sh"
 ```
-
-### Fedora Workstation
-
-```sh
-sudo dnf install -y git chezmoi
-chezmoi init --apply RaioViajante
-```
-
-This clones the source to `~/.local/share/chezmoi` and applies the
-configuration. `chezmoi apply` never calls `sudo`. To keep the working copy
-under `~/Developer` instead, clone it there and symlink chezmoi's source path
-before `init`:
-
-```sh
-git clone git@github.com:RaioViajante/dotfiles.git ~/Developer/dotfiles
-ln -s ~/Developer/dotfiles ~/.local/share/chezmoi
-chezmoi init --apply
-```
-
-Then run the one-time system bootstrap:
-
-```sh
-"$(chezmoi source-path)/scripts/fedora/bootstrap.sh"
-```
-
-It is idempotent — safe to re-run — and each step can also be run alone
-(`bootstrap.sh 30` runs only `30-node.sh`). It installs the external
-repositories, the curated package set, the Node and Java toolchains, Docker
-Engine CE, VS Code with the curated extensions, and the GNOME preferences.
 
 ### Windows 11
 
@@ -248,9 +208,8 @@ DOTFILES_SKIP_BREW_BUNDLE=1 chezmoi apply
 After pulling a change that touches `.chezmoi.toml.tmpl`, run `chezmoi init`
 once (it asks nothing).
 
-On Fedora, re-run `"$(chezmoi source-path)/scripts/fedora/bootstrap.sh"` (or a
-single step) to pick up manifest or toolchain changes. On Windows, re-run
-`scripts\windows\bootstrap.ps1` (or `-Only <step>`) for the same purpose.
+On Windows, re-run `scripts\windows\bootstrap.ps1` (or `-Only <step>`) to pick
+up manifest or toolchain changes.
 
 ## What is shared vs platform-specific
 
@@ -268,10 +227,6 @@ Icon Theme + Catppuccin Mocha colour theme), the iTerm2 Dynamic Profile
 `raioviajante`, `scripts/macos/macos-defaults.sh`,
 `scripts/macos/register-jdks.sh`, `scripts/macos/apply-preferences.sh`.
 
-**Fedora-specific:** `manifests/fedora-packages.txt`, everything under
-`scripts/fedora/`, fnm + pnpm + SDKMAN shell integration, the Linux VS Code
-`settings.json`.
-
 **Windows-specific:** `manifests/windows-packages.txt`, everything under
 `scripts/windows/`, the PowerShell 7 profile (a native port of the shared aliases
 and helpers, with the same fnm / zoxide / Starship integrations, plus the `jdk`
@@ -286,8 +241,7 @@ reports "unsupported archive" because stock Windows has no tool for it.
 ## Neovim
 
 A modular Lua configuration in `dot_config/nvim/`, shared between all platforms.
-Installed by the `Brewfile` on macOS, `manifests/fedora-packages.txt` on
-Fedora and `manifests/windows-packages.txt` on Windows. VS Code stays the primary editor; Neovim is the terminal editor and the
+Installed by the `Brewfile` on macOS and `manifests/windows-packages.txt` on Windows. VS Code stays the primary editor; Neovim is the terminal editor and the
 `EDITOR` fallback when `code` is absent.
 
 - **Plugin manager:** [lazy.nvim](https://github.com/folke/lazy.nvim),
@@ -347,7 +301,7 @@ Windows (in addition to the applicable items below):
 
   ```sh
   ssh-keygen -t ed25519 -a 100 -f ~/.ssh/id_ed25519_github
-  gh ssh-key add ~/.ssh/id_ed25519_github.pub --type authentication --title "fedora"
+  gh ssh-key add ~/.ssh/id_ed25519_github.pub --type authentication --title "$(hostname)"
   ```
 
 - Default shell: `chsh -s "$(command -v zsh)"` then log out / in
@@ -410,9 +364,6 @@ Windows (in addition to the applicable items below):
   `sudo`, stores no secrets, and reports (instead of silently overwriting) if
   a differing registration already exists. Proton account sign-in and Bridge
   pairing stay manual, same as the rest of the Proton ecosystem.
-- `docker` group: log out / in after the bootstrap adds you
-- Clipboard Indicator: install from the GNOME Extensions app
-- Secure Boot / MOK enrollment, firmware, disks, monitor layout: **workstation-setup**
 
 ## Security model
 
@@ -428,9 +379,6 @@ Never managed, never copied into the source state, blocked by `.gitignore` and
 
 The versioned Git identity is a `github.com` noreply address, which is public by
 design; the real personal address must never appear.
-
-Membership in the `docker` group is effectively root on the host — the Docker
-bootstrap prints this warning explicitly.
 
 Run before every commit:
 

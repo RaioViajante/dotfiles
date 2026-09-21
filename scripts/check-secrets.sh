@@ -42,10 +42,9 @@ done < <(rg -l --hidden --glob '!**/.git/**' --glob '!scripts/check-secrets.sh' 
   "$root" 2>/dev/null || true)
 
 # The negative lookaheads skip tokens that share the user@domain shape but are
-# not private: the Git SSH remote, the public GNOME Shell extension UUIDs used
-# by scripts/fedora/70-gnome.sh, and GitHub noreply commit addresses (the
+# not private: the Git SSH remote and GitHub noreply commit addresses (the
 # managed Git identity in dot_gitconfig uses one).
-email_pattern='(?<![A-Za-z0-9._%+-])(?!git@github\.com\b)(?!clipboard-indicator@tudmotu\.com\b)(?!background-logo@fedorahosted\.org\b)(?![A-Za-z0-9._%+-]+@users\.noreply\.github\.com\b)[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'
+email_pattern='(?<![A-Za-z0-9._%+-])(?!git@github\.com\b)(?![A-Za-z0-9._%+-]+@users\.noreply\.github\.com\b)[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'
 while IFS= read -r file; do
   [[ -n "$file" ]] || continue
   printf 'email-like content: %s\n' "${file#"$root"/}"

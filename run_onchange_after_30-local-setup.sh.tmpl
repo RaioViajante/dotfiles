@@ -16,18 +16,6 @@ else
   chmod 600 "$git_local"
 fi
 
-{{ if eq .chezmoi.os "linux" -}}
-if command -v dnf >/dev/null 2>&1 && [[ ! -x "$HOME/.local/share/fnm/fnm" ]]; then
-  cat >&2 <<'MESSAGE'
-Fedora host detected without the development toolchain.
-Run the one-time bootstrap to install repositories, packages, Node, Java,
-Docker, VS Code extensions and GNOME preferences:
-
-    "$(chezmoi source-path)/scripts/fedora/bootstrap.sh"
-MESSAGE
-fi
-{{ end -}}
-
 {{ if eq .chezmoi.os "darwin" -}}
 # Homebrew, git and clang need the Command Line Tools, not full Xcode.app.
 if ! xcode-select -p >/dev/null 2>&1; then

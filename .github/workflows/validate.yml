@@ -53,7 +53,6 @@ jobs:
             dot_config/zsh/integrations.zsh.tmpl
             dot_config/zsh/tools.zsh
             dot_config/Code/User/settings.json.tmpl
-            manifests/fedora-packages.txt
             manifests/vscode-extensions.txt
             manifests/windows-packages.txt
             scripts/lib.sh
@@ -62,7 +61,6 @@ jobs:
             scripts/macos/macos-defaults.sh
             scripts/macos/register-jdks.sh
             scripts/macos/install-vscode-extensions.sh
-            scripts/fedora/bootstrap.sh
             scripts/windows/bootstrap.ps1
             Documents/PowerShell/Microsoft.PowerShell_profile.ps1
             AppData/Roaming/Code/User/settings.json.tmpl
@@ -102,7 +100,7 @@ jobs:
           set -euo pipefail
           # SC1091: library path is resolved at runtime from ${BASH_SOURCE}.
           shellcheck -x -e SC1091 scripts/lib.sh scripts/check-secrets.sh \
-            scripts/macos/*.sh scripts/fedora/*.sh
+            scripts/macos/*.sh
 
       - name: Validate chezmoi templates and manifests
         shell: bash
