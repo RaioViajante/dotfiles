@@ -15,7 +15,7 @@
 # This script deliberately does NOT touch: iCloud / Desktop / Documents sync,
 # any network / DNS / firewall / proxy setting, security or privacy settings,
 # the wallpaper, scroll direction, the keyboard, or the trackpad (those are at
-# macOS defaults on the reference machine, so a fresh Mac already matches). It
+# macOS defaults, so a fresh Mac already matches). It
 # never calls sudo.
 set -euo pipefail
 
@@ -156,7 +156,8 @@ defaults_set com.apple.finder  ShowStatusBar          1 finder_changed -bool tru
 defaults_set com.apple.finder  ShowSidebar            1 finder_changed -bool true
 defaults_set com.apple.finder  AppleShowAllFiles      0 finder_changed -bool false
 # New Finder windows open on "Computer" (PfCm; the macOS default is Recents) and
-# internal disks show on the Desktop (default off). Both mirror this machine.
+# internal disks show on the Desktop (default off). Both are part of the macOS
+# desktop baseline.
 defaults_set com.apple.finder  NewWindowTarget        PfCm finder_changed -string PfCm
 defaults_set com.apple.finder  ShowHardDrivesOnDesktop 1   finder_changed -bool true
 

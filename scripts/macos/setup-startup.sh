@@ -1,5 +1,5 @@
 #!/bin/bash
-# Reproduce the intentional startup behaviour of the workstation: two classic
+# Reproduce the intentional startup behaviour of this macOS setup: two classic
 # Login Items and the Homebrew MySQL background service.
 #
 # Deliberately NOT handled here: applications that manage their own startup

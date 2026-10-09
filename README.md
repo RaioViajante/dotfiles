@@ -5,6 +5,9 @@ Personal development environment for **Apple Silicon macOS**, managed with
 editor and terminal configuration, a Homebrew package list, and setup scripts.
 Credentials and machine state stay local.
 
+The managed paths assume an Apple Silicon Homebrew installation at
+`/opt/homebrew`. Intel macOS is outside this repository's supported setup.
+
 ## Setup
 
 Install the Xcode Command Line Tools (`xcode-select --install`) if they are
