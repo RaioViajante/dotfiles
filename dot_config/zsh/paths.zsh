@@ -1,13 +1,12 @@
 typeset -U path PATH
 
-# User-local executables (all platforms).
+# User-local executables.
 [[ -d "$HOME/.local/bin" ]] && path=("$HOME/.local/bin" $path)
 
 # Docker Desktop CLI helpers and Compose plugins.
 [[ -d "$HOME/.docker/bin" ]] && path=("$HOME/.docker/bin" $path)
 [[ -d "$HOME/.docker/completions" ]] && fpath=("$HOME/.docker/completions" $fpath)
 
-{{ if eq .chezmoi.os "darwin" -}}
 # Visual Studio Code CLI shipped inside the macOS application bundle.
 [[ -d "/Applications/Visual Studio Code.app/Contents/Resources/app/bin" ]] && \
   path=("/Applications/Visual Studio Code.app/Contents/Resources/app/bin" $path)
@@ -39,5 +38,4 @@ elif [[ -d "$JAVA_21_HOME" ]]; then
 fi
 
 # pnpm is installed by Homebrew, so PNPM_HOME is intentionally not added.
-{{ end -}}
 export PATH

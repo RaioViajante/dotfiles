@@ -23,11 +23,6 @@ known_hosts
 known_hosts.*
 authorized_keys
 
-# Secure Boot / MOK key material
-MOK*
-*.der
-*.priv
-
 # Credential and token files
 .npmrc
 .netrc
@@ -35,9 +30,6 @@ auth.json
 hosts.yml
 credentials
 credentials.json
-
-# Hardware-specific state that belongs to the workstation-setup repository
-monitors.xml
 
 # Local setup backups (see README)
 *.bak

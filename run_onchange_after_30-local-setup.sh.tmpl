@@ -2,7 +2,7 @@
 # Dotfiles revision: {{ include "dot_gitconfig" | sha256sum }}
 set -euo pipefail
 
-# Portable post-apply setup: local directories and the optional Git override file.
+# Local directories and the optional Git override file.
 git_local="$HOME/.config/git/local.gitconfig"
 mkdir -p "$(dirname "$git_local")" "$HOME/.cache/zsh" "$HOME/.local/bin"
 
@@ -16,7 +16,6 @@ else
   chmod 600 "$git_local"
 fi
 
-{{ if eq .chezmoi.os "darwin" -}}
 # Homebrew, git and clang need the Command Line Tools, not full Xcode.app.
 if ! xcode-select -p >/dev/null 2>&1; then
   cat >&2 <<'MESSAGE'
@@ -34,4 +33,3 @@ satisfies this check, since it includes the Command Line Tools:
     open 'macappstore://apps.apple.com/app/id497799835'
 MESSAGE
 fi
-{{ end -}}

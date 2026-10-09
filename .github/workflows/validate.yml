@@ -9,27 +9,16 @@ permissions:
 
 jobs:
   validate:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-latest, ubuntu-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: macos-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
 
-      - name: Install validation dependencies (macOS)
-        if: runner.os == 'macOS'
+      - name: Install validation dependencies
         run: |
           command -v rg >/dev/null || brew install ripgrep
           command -v shellcheck >/dev/null || brew install shellcheck
           command -v chezmoi >/dev/null || brew install chezmoi
-
-      - name: Install validation dependencies (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ripgrep shellcheck
 
       - name: Validate repository structure
         shell: bash
@@ -39,46 +28,36 @@ jobs:
             README.md Brewfile
             .chezmoi.toml.tmpl .chezmoiignore
             dot_zshrc dot_zprofile dot_gitconfig
-            dot_config/starship.toml.tmpl
+            dot_config/starship.toml
             dot_config/nvim/init.lua
             dot_config/nvim/lua/config/lazy.lua
             dot_config/zsh/options.zsh
-            dot_config/zsh/paths.zsh.tmpl
+            dot_config/zsh/paths.zsh
             dot_config/zsh/completion.zsh
             dot_config/zsh/aliases.zsh
             dot_config/zsh/functions.zsh
-            dot_config/zsh/dev.zsh.tmpl
+            dot_config/zsh/dev.zsh
             dot_config/zsh/tools.zsh
             manifests/vscode-extensions.txt
-            manifests/windows-packages.txt
             scripts/lib.sh
             scripts/check-secrets.sh
             scripts/macos/apply-preferences.sh
             scripts/macos/macos-defaults.sh
             scripts/macos/register-jdks.sh
             scripts/macos/install-vscode-extensions.sh
-            scripts/windows/bootstrap.ps1
-            Documents/PowerShell/Microsoft.PowerShell_profile.ps1
-            AppData/Roaming/Code/User/settings.json.tmpl
-            AppData/Local/nvim/init.lua.tmpl
             .gitattributes
           )
           for path in "${required[@]}"; do
             test -e "$path" || { echo "Missing required path: $path" >&2; exit 1; }
           done
 
-      - name: Render and syntax-check shell (macOS)
-        if: runner.os == 'macOS'
+      - name: Render and syntax-check shell
         shell: bash
         run: |
           set -euo pipefail
           # Plain Zsh modules.
           for file in dot_zshrc dot_zprofile dot_config/zsh/*.zsh; do
             zsh -n "$file"
-          done
-          # Templated Zsh modules, rendered for the current OS.
-          for tmpl in dot_config/zsh/*.zsh.tmpl; do
-            chezmoi execute-template --source "$PWD" < "$tmpl" | zsh -n
           done
           # Bootstrap scripts and templated run scripts.
           for file in scripts/*.sh scripts/*/*.sh; do
@@ -99,8 +78,7 @@ jobs:
           shellcheck -x -e SC1091 scripts/lib.sh scripts/check-secrets.sh \
             scripts/macos/*.sh
 
-      - name: Validate chezmoi templates and manifests (macOS)
-        if: runner.os == 'macOS'
+      - name: Validate chezmoi templates and manifests
         shell: bash
         run: |
           set -euo pipefail
@@ -169,8 +147,7 @@ jobs:
             exit 1
           fi
 
-      - name: Simulate chezmoi init + apply (macOS)
-        if: runner.os == 'macOS'
+      - name: Simulate chezmoi init + apply
         shell: bash
         run: |
           set -euo pipefail
@@ -183,77 +160,13 @@ jobs:
           # Applying twice must be a no-op.
           cz apply --exclude=scripts,encrypted
           test -z "$(cz diff --exclude=scripts,encrypted)"
-
-  validate-windows:
-    runs-on: windows-latest
-    defaults:
-      run:
-        shell: pwsh
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v7
-
-      - name: Install chezmoi
-        run: choco install chezmoi --no-progress -y
-
-      - name: PowerShell syntax
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $files = Get-ChildItem -Recurse -File -Include *.ps1 |
-            Where-Object { $_.FullName -notmatch '[\\/]\.git[\\/]' }
-          foreach ($file in $files) {
-            $errors = $null
-            [System.Management.Automation.Language.Parser]::ParseFile($file.FullName, [ref]$null, [ref]$errors) | Out-Null
-            if ($errors) { $errors | ForEach-Object { Write-Error "$($file.Name): $($_.Message)" } }
-            else { Write-Host "ok $($file.Name)" }
-          }
-
-      - name: Profile loads without optional tools
-        run: |
-          $ErrorActionPreference = 'Stop'
-          # A stripped PATH proves every optional CLI is guarded.
-          $profilePath = Join-Path $env:GITHUB_WORKSPACE 'Documents\PowerShell\Microsoft.PowerShell_profile.ps1'
-          $env:Path = "$PSHOME;$env:SystemRoot\System32"
-          pwsh -NoLogo -NoProfile -Command ". '$profilePath'; if (`$Error) { `$Error; exit 1 }"
-          if ($LASTEXITCODE) { throw 'the profile reported errors with no optional tools installed' }
-
-      - name: Manifests
-        run: |
-          $ErrorActionPreference = 'Stop'
-          foreach ($name in 'windows-packages.txt', 'vscode-extensions.txt') {
-            $entries = Get-Content "manifests/$name" | ForEach-Object { $_.Trim() } | Where-Object { $_ -and -not $_.StartsWith('#') }
-            if (-not $entries) { throw "empty manifest: $name" }
-            $dupes = $entries | Group-Object { $_.ToLowerInvariant() } | Where-Object Count -gt 1
-            if ($dupes) { throw "duplicate entries in ${name}: $($dupes.Name -join ', ')" }
-          }
-          $packages = Get-Content manifests/windows-packages.txt | Where-Object { $_ -and -not $_.TrimStart().StartsWith('#') }
-          if ($packages -match 'bitwarden') { throw 'Bitwarden must not be a Windows package' }
-
-      - name: Simulate chezmoi init + apply for Windows
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $work = Join-Path $env:RUNNER_TEMP 'cz'
-          New-Item -ItemType Directory -Force "$work\dest" | Out-Null
-          function cz {
-            chezmoi --config "$work\chezmoi.toml" --source $env:GITHUB_WORKSPACE --destination "$work\dest" --persistent-state "$work\state.boltdb" @args
-            if ($LASTEXITCODE) { throw "chezmoi $args failed" }
-          }
-          cz init
-          cz apply '--exclude=scripts,encrypted'
-          # Applying twice must be a no-op.
-          cz apply '--exclude=scripts,encrypted'
-          if (cz diff '--exclude=scripts,encrypted') { throw 'chezmoi diff is not empty after apply' }
-          $expected = 'Documents\PowerShell\Microsoft.PowerShell_profile.ps1', 'AppData\Roaming\Code\User\settings.json',
-            'AppData\Local\nvim\init.lua', '.config\starship.toml'
-          foreach ($target in $expected) {
-            if (-not (Test-Path "$work\dest\$target")) { throw "missing target: $target" }
-          }
-          foreach ($unwanted in '.zshrc', '.config\zsh', '.config\nvim', 'Library') {
-            if (Test-Path "$work\dest\$unwanted") { throw "Unix-only target applied on Windows: $unwanted" }
-          }
-          # The VS Code settings must be valid JSONC.
-          $json = (Get-Content "$work\dest\AppData\Roaming\Code\User\settings.json" -Raw) -replace '(?m)^\s*//.*$', ''
-          $null = $json | ConvertFrom-Json
-          if ((Get-Content "$work\dest\.config\starship.toml" -Raw) -notmatch 'scan_timeout = 500') {
-            throw 'Windows starship scan_timeout must be 500'
-          }
+          expected=(
+            .zshrc .zprofile .gitconfig
+            .config/zsh/paths.zsh .config/zsh/dev.zsh
+            .config/starship.toml .config/nvim/init.lua
+            'Library/Application Support/Code/User/settings.json'
+            'Library/Application Support/iTerm2/DynamicProfiles/raioviajante.json'
+          )
+          for target in "${expected[@]}"; do
+            test -f "$dest/$target" || { echo "Missing applied target: $target" >&2; exit 1; }
+          done
