@@ -20,7 +20,6 @@ export PAGER=less
 export LESS='-FRX'
 export FZF_DEFAULT_OPTS='--height=40% --layout=reverse --border'
 
-{{ if eq .chezmoi.os "darwin" -}}
 # macOS: switch the active Homebrew JDK without requiring system registration.
 jdk() {
   if [[ $# -eq 0 ]]; then
@@ -62,4 +61,3 @@ if (( $+commands[brew] )); then
   alias mysql-restart='brew services restart mysql'
   alias mysql-status='brew services list | grep -E "^mysql[[:space:]]"'
 fi
-{{ end -}}

@@ -105,6 +105,6 @@ cask "protonvpn"
 # sign-in stays manual, same as the rest of the Proton ecosystem above.
 cask "proton-mail-bridge"
 
-# VS Code extensions are not listed here: the canonical list for every platform is
-# manifests/vscode-extensions.txt, installed on macOS by
+# VS Code extensions are not listed here: the canonical list is
+# manifests/vscode-extensions.txt, installed by
 # scripts/macos/install-vscode-extensions.sh (run by chezmoi after this bundle).

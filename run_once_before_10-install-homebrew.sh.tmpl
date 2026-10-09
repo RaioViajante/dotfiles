@@ -5,10 +5,5 @@ if command -v brew >/dev/null 2>&1; then
   exit 0
 fi
 
-if [[ "$(uname -s)" != Darwin ]]; then
-  # Not macOS: Homebrew is not used here.
-  exit 0
-fi
-
 echo "Installing Homebrew..."
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"

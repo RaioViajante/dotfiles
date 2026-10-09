@@ -1,21 +1,2 @@
-{{/*
-chezmoi configuration template.
-
-Platform branching throughout this repository uses the built-in
-`.chezmoi.os` fact, so this file asks no interactive questions and is
-safe to regenerate at any time with `chezmoi init`.
-*/ -}}
-
-{{ if eq .chezmoi.os "windows" -}}
-# Windows keeps the working copy wherever `chezmoi init --source` pointed
-# (normally ~/dotfiles), so remember it instead of assuming chezmoi's default.
-sourceDir = {{ .chezmoi.sourceDir | toJson }}
-
-# Run .ps1 scripts with PowerShell 7 and without the user profile.
-[interpreters.ps1]
-    command = "pwsh"
-    args = ["-NoLogo", "-NoProfile"]
-
-{{ end -}}
 [diff]
     exclude = ["scripts"]

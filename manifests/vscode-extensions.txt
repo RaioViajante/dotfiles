@@ -1,6 +1,4 @@
-# Canonical VS Code extension list for every platform.
-# Installed by scripts/macos/install-vscode-extensions.sh (macOS, run by chezmoi)
-# and scripts/windows/30-vscode-extensions.ps1 (Windows).
+# VS Code extensions installed by scripts/macos/install-vscode-extensions.sh.
 # One extension id per line. Lines starting with '#' and blank lines are ignored.
 # Extension packs pull their own members; those members are not listed here.
 # No Copilot, AI code assistants, snippet packs or extra themes are installed.
