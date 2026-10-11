@@ -25,7 +25,8 @@ return {
       -- Mason package names. Servers cover TypeScript / JavaScript / Angular,
       -- HTML / CSS / Tailwind / JSON, ESLint, PHP, Python, Java, Lua, Bash,
       -- YAML and Markdown; the rest are the command-line formatters
-      -- conform.nvim runs. Rust has tree-sitter highlighting only for now.
+      -- conform.nvim runs. rust-analyzer is not installed here: it comes from
+      -- rustup (setup dev) and is enabled below.
       require("mason-tool-installer").setup({
         ensure_installed = {
           "lua-language-server",
@@ -94,9 +95,16 @@ return {
       require("mason-lspconfig").setup({
         ensure_installed = {},
         automatic_enable = {
-          exclude = { "stylua" },
+          exclude = { "stylua", "rust_analyzer" },
         },
       })
+
+      -- rust-analyzer from rustup's proxy, which follows the project's
+      -- rust-toolchain.toml; rustfmt formats through it (format on save falls
+      -- back to the language server).
+      if vim.fn.executable("rust-analyzer") == 1 then
+        vim.lsp.enable("rust_analyzer")
+      end
 
       -- Buffer-local keymaps once a server attaches. Neovim 0.11+ already binds
       -- grn / gra / grr / gri / gO; these add Telescope pickers and hints.

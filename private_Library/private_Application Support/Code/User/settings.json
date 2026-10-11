@@ -20,6 +20,10 @@
     }
   ],
 
+  // rust-analyzer from rustup (setup dev) instead of the extension's bundled
+  // copy, so a project's rust-toolchain.toml selects the server version too.
+  "rust-analyzer.server.path": "/opt/homebrew/opt/rustup/bin/rust-analyzer",
+
   // Homebrew CPython, discovered even when VS Code is launched from Finder.
   "python.defaultInterpreterPath": "/opt/homebrew/bin/python3",
 

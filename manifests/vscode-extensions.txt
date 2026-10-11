@@ -18,6 +18,9 @@ vscjava.vscode-java-pack
 bmewburn.vscode-intelephense-client
 laravel.vscode-laravel
 
+# Rust (the server comes from rustup; see settings.json)
+rust-lang.rust-analyzer
+
 # Python
 charliermarsh.ruff
 ms-python.python

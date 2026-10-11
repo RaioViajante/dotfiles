@@ -76,6 +76,7 @@ module_targets() {
 # Steps that run after a module's packages are installed.
 module_steps() {
   case "$1" in
+    dev) echo "scripts/macos/setup-rust.sh" ;;
     ai) echo "scripts/macos/install-ai-clis.sh" ;;
     vscode) echo "scripts/macos/install-vscode-extensions.sh" ;;
   esac

@@ -21,9 +21,11 @@ typeset -U path PATH
 # managed PATH rather than per-machine symlinks in ~/.local/bin.
 [[ -d "/opt/homebrew/opt/node@24/bin" ]] && path=("/opt/homebrew/opt/node@24/bin" $path)
 
-# Rust toolchain (rustup). The helper it writes only prepends ~/.cargo/bin to
-# PATH and is a safe no-op when Rust is not installed.
-[[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
+# Rust: Homebrew's keg-only rustup and its proxies (cargo, rustc,
+# rust-analyzer, ...), which honour rust-toolchain.toml files, then binaries
+# installed with `cargo install`.
+[[ -d "/opt/homebrew/opt/rustup/bin" ]] && path=("/opt/homebrew/opt/rustup/bin" $path)
+[[ -d "$HOME/.cargo/bin" ]] && path=("$HOME/.cargo/bin" $path)
 
 # Java 25 is the current default for Java and Spring Boot work. Java 21 remains
 # available through jdk 21 for projects that still require it.

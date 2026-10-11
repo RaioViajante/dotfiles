@@ -32,6 +32,10 @@ brew "composer"
 brew "python@3.14"
 brew "uv"
 
+# Rust through rustup: toolchains, rustfmt, clippy and rust-analyzer are set up
+# by scripts/macos/setup-rust.sh. Keg-only; dot_config/zsh puts it on PATH.
+brew "rustup"
+
 # Mac App Store CLI for scripts/macos/install-mas-apps.sh (Xcode). The App Store
 # sign-in stays a manual step.
 brew "mas"
