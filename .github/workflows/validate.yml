@@ -45,6 +45,7 @@ jobs:
             scripts/lib.sh
             scripts/check-secrets.sh
             scripts/check-modules.sh
+            scripts/check-docs.sh
             scripts/macos/apply-preferences.sh
             scripts/macos/macos-defaults.sh
             scripts/macos/register-jdks.sh
@@ -85,7 +86,7 @@ jobs:
           set -euo pipefail
           # SC1091: library path is resolved at runtime from ${BASH_SOURCE}.
           shellcheck -x -e SC1091 setup scripts/lib.sh scripts/check-secrets.sh \
-            scripts/check-modules.sh scripts/macos/*.sh
+            scripts/check-modules.sh scripts/check-docs.sh scripts/macos/*.sh
 
       - name: Validate chezmoi templates and manifests
         shell: bash
@@ -111,6 +112,12 @@ jobs:
             echo "setup without a module must not succeed" >&2
             exit 1
           fi
+
+      - name: Validate documentation
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./scripts/check-docs.sh
 
       - name: Validate the iTerm2 Dynamic Profile
         shell: bash
