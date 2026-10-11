@@ -4,7 +4,9 @@
 -- vim.treesitter; this plugin installs parsers and queries.
 
 local parsers = {
+  "angular",
   "bash",
+  "blade",
   "c",
   "css",
   "diff",
@@ -24,6 +26,7 @@ local parsers = {
   "python",
   "query",
   "regex",
+  "rust",
   "scss",
   "sql",
   "toml",

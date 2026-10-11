@@ -21,14 +21,18 @@ return {
     },
   },
 
-  -- Status line. Icons off to match the terminal font.
+  -- File-type icons for the status line, explorer, picker and which-key; loaded
+  -- on first use.
+  { "nvim-tree/nvim-web-devicons", lazy = true, enabled = vim.g.have_nerd_font },
+
+  -- Status line.
   {
     "nvim-lualine/lualine.nvim",
     event = "VeryLazy",
     opts = {
       options = {
         theme = "catppuccin",
-        icons_enabled = false,
+        icons_enabled = vim.g.have_nerd_font,
         component_separators = "|",
         section_separators = "",
         globalstatus = true,

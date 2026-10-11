@@ -23,8 +23,9 @@ return {
       require("mason").setup({ ui = { border = "rounded" } })
 
       -- Mason package names. Servers cover TypeScript / JavaScript / Angular,
-      -- HTML / CSS / JSON, ESLint, PHP, Python, Java, Lua, Bash and YAML; the
-      -- rest are the command-line formatters conform.nvim runs.
+      -- HTML / CSS / Tailwind / JSON, ESLint, PHP, Python, Java, Lua, Bash,
+      -- YAML and Markdown; the rest are the command-line formatters
+      -- conform.nvim runs. Rust has tree-sitter highlighting only for now.
       require("mason-tool-installer").setup({
         ensure_installed = {
           "lua-language-server",
@@ -32,6 +33,7 @@ return {
           "angular-language-server",
           "html-lsp",
           "css-lsp",
+          "tailwindcss-language-server",
           "json-lsp",
           "emmet-language-server",
           "eslint-lsp",
@@ -41,6 +43,7 @@ return {
           "jdtls",
           "bash-language-server",
           "yaml-language-server",
+          "marksman",
           "stylua",
           "prettierd",
           "shfmt",
@@ -68,6 +71,9 @@ return {
             },
           },
         },
+        -- Only start inside an Angular workspace (angular.json / nx.json), not
+        -- in every TypeScript and HTML buffer.
+        angularls = { workspace_required = true },
         eslint = {
           settings = { workingDirectories = { mode = "auto" } },
         },
@@ -116,7 +122,8 @@ return {
         end,
       })
 
-      local sign = vim.g.have_nerd_font and { ERROR = "", WARN = "", INFO = "", HINT = "" }
+      local sign = vim.g.have_nerd_font
+          and { ERROR = "\u{f057}", WARN = "\u{f071}", INFO = "\u{f05a}", HINT = "\u{f0eb}" }
         or { ERROR = "E", WARN = "W", INFO = "I", HINT = "H" }
       vim.diagnostic.config({
         severity_sort = true,

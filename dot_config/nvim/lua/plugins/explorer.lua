@@ -16,7 +16,8 @@ return {
     enable_git_status = true,
     enable_diagnostics = true,
     close_if_last_window = true,
-    default_component_configs = {
+    -- ASCII fallbacks, used only without a Nerd Font (see init.lua).
+    default_component_configs = not vim.g.have_nerd_font and {
       icon = {
         folder_closed = "+",
         folder_open = "-",
@@ -36,7 +37,7 @@ return {
           conflict = "C",
         },
       },
-    },
+    } or nil,
     window = {
       width = 34,
       mappings = {
