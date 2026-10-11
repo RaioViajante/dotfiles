@@ -25,7 +25,10 @@ jobs:
         run: |
           set -euo pipefail
           required=(
-            README.md Brewfile
+            README.md Brewfile setup
+            brew/apps.Brewfile brew/dev.Brewfile brew/ai.Brewfile
+            brew/content.Brewfile brew/shell.Brewfile brew/vscode.Brewfile
+            brew/nvim.Brewfile
             .chezmoi.toml.tmpl .chezmoiignore
             dot_zshrc dot_zprofile dot_gitconfig
             dot_config/starship.toml
@@ -41,6 +44,7 @@ jobs:
             manifests/vscode-extensions.txt
             scripts/lib.sh
             scripts/check-secrets.sh
+            scripts/check-modules.sh
             scripts/macos/apply-preferences.sh
             scripts/macos/macos-defaults.sh
             scripts/macos/register-jdks.sh
@@ -59,8 +63,9 @@ jobs:
           for file in dot_zshrc dot_zprofile dot_config/zsh/*.zsh; do
             zsh -n "$file"
           done
-          # Bootstrap scripts and templated run scripts.
-          for file in scripts/*.sh scripts/*/*.sh; do
+          # Setup command, helper scripts and any templated run scripts.
+          shopt -s nullglob
+          for file in setup scripts/*.sh scripts/*/*.sh; do
             bash -n "$file"
           done
           for tmpl in run_*.sh.tmpl; do
@@ -79,8 +84,8 @@ jobs:
         run: |
           set -euo pipefail
           # SC1091: library path is resolved at runtime from ${BASH_SOURCE}.
-          shellcheck -x -e SC1091 scripts/lib.sh scripts/check-secrets.sh \
-            scripts/macos/*.sh
+          shellcheck -x -e SC1091 setup scripts/lib.sh scripts/check-secrets.sh \
+            scripts/check-modules.sh scripts/macos/*.sh
 
       - name: Validate chezmoi templates and manifests
         shell: bash
@@ -94,6 +99,18 @@ jobs:
             dupes="$(printf '%s\n' "$entries" | sort | uniq -d)"
             [ -z "$dupes" ] || { echo "duplicate entries in $manifest: $dupes" >&2; exit 1; }
           done
+
+      - name: Validate setup modules
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./scripts/check-modules.sh
+          ./setup --help >/dev/null
+          # No module selected: print help and refuse to install anything.
+          if ./setup >/dev/null 2>&1; then
+            echo "setup without a module must not succeed" >&2
+            exit 1
+          fi
 
       - name: Validate the iTerm2 Dynamic Profile
         shell: bash
@@ -165,7 +182,7 @@ jobs:
           cz apply --exclude=scripts,encrypted
           test -z "$(cz diff --exclude=scripts,encrypted)"
           expected=(
-            .zshrc .zprofile .gitconfig
+            .zshrc .zprofile .gitconfig .config/git/local.gitconfig
             .config/zsh/paths.zsh .config/zsh/dev.zsh
             .config/starship.toml .config/nvim/init.lua
             'Library/Application Support/Code/User/settings.json'

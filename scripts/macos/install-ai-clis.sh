@@ -1,7 +1,7 @@
 #!/bin/bash
 # Install the terminal AI coding agents that ship their own official installers:
 # Claude Code (claude), Codex CLI (codex) and Kimi Code (kimi). Each installer
-# self-updates the tool afterwards. OpenCode comes from the Brewfile instead.
+# self-updates the tool afterwards. OpenCode comes from brew/ai.Brewfile.
 #
 # MANUAL step, never run by `chezmoi apply`. Idempotent: a tool whose command
 # is already available (from any install method) is skipped, so an existing

@@ -1,0 +1,275 @@
+#!/bin/bash
+# Modular macOS setup: install package modules and apply configuration modules.
+# Package membership lives in brew/*.Brewfile; this script only maps module
+# names to bundles, chezmoi targets and post-install steps. Run with --help.
+# Written for the bash 3.2 that ships with macOS.
+
+set -euo pipefail
+
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$REPO/scripts/lib.sh"
+
+INSTALL_MODULES="apps dev ai content"
+CONFIG_MODULES="shell git vscode nvim"
+
+usage() {
+  cat <<'EOF'
+Usage: setup [options] MODULE...
+
+Install modules (packages only):
+  apps      Desktop apps: productivity, communication, browsers, Proton
+  dev       Development tools: runtimes, databases, CLIs, developer apps, Rust
+  ai        AI apps, OpenCode, and the Claude Code, Codex and Kimi Code CLIs
+  content   Content creation: OBS, Blender, Krita, Audacity, FFmpeg
+
+Configuration modules (their own packages, then the managed dotfiles):
+  shell     zsh, Starship, CLI tools, iTerm2 profile (made the default)
+  git       Git settings and per-account commit identities
+  vscode    VS Code, its settings and extensions
+  nvim      Neovim, its dependencies and configuration
+
+  all       Every module above
+
+Options:
+  -n, --dry-run      Show what would run, change nothing
+  -l, --list         List modules with their bundles and managed files
+      --no-packages  Skip all package installation; apply configuration only
+  -h, --help         Show this help
+
+Examples:
+  setup dev                  Development tools only
+  setup shell git            Apply the shell and Git configuration
+  setup --no-packages nvim   Apply the Neovim configuration without installing
+  setup apps ai content      Combine install modules
+  setup all                  Complete setup
+
+Nothing is installed without an explicit MODULE. See docs/setup.md.
+EOF
+}
+
+# Bundles a module installs, shared dependencies first.
+module_bundles() {
+  case "$1" in
+    apps) echo "brew/apps.Brewfile" ;;
+    dev) echo "brew/shared/node.Brewfile brew/dev.Brewfile" ;;
+    ai) echo "brew/ai.Brewfile" ;;
+    content) echo "brew/content.Brewfile" ;;
+    shell) echo "brew/shared/chezmoi.Brewfile brew/shared/ripgrep.Brewfile brew/shell.Brewfile" ;;
+    git) echo "brew/shared/chezmoi.Brewfile" ;;
+    vscode) echo "brew/shared/chezmoi.Brewfile brew/vscode.Brewfile" ;;
+    nvim) echo "brew/shared/chezmoi.Brewfile brew/shared/ripgrep.Brewfile brew/shared/node.Brewfile brew/nvim.Brewfile" ;;
+  esac
+}
+
+# Managed files a configuration module applies, relative to $HOME. Every file
+# chezmoi manages must belong to exactly one module (checked in CI).
+module_targets() {
+  case "$1" in
+    shell) printf '%s\n' .zprofile .zshrc .config/zsh .config/starship.toml \
+      "Library/Application Support/iTerm2/DynamicProfiles" ;;
+    git) printf '%s\n' .gitconfig .config/git ;;
+    vscode) printf '%s\n' "Library/Application Support/Code/User/settings.json" ;;
+    nvim) printf '%s\n' .config/nvim ;;
+  esac
+}
+
+# Steps that run after a module's packages are installed.
+module_steps() {
+  case "$1" in
+    ai) echo "scripts/macos/install-ai-clis.sh" ;;
+    vscode) echo "scripts/macos/install-vscode-extensions.sh" ;;
+  esac
+}
+
+# Manual follow-ups printed in the summary.
+module_notes() {
+  case "$1" in
+    apps) echo "Sign in to each app. Install TeamSpeak 6 and Proton Authenticator by hand (docs/apps.md)." ;;
+    dev) echo "Register the JDKs (scripts/macos/register-jdks.sh) and, after an App Store sign-in, run scripts/macos/install-mas-apps.sh for Xcode (docs/development.md)." ;;
+    ai) echo "Sign in to each AI app and CLI interactively; install the Kimi desktop app by hand (docs/ai.md)." ;;
+    content) echo "Open each app once to finish its first-run setup (docs/content-creation.md)." ;;
+    shell) echo "Open a new terminal to load the shell configuration (docs/shell-and-terminal.md)." ;;
+    git) echo "Create ~/.gitconfig-personal and ~/.gitconfig-college and the SSH keys (docs/git.md)." ;;
+    vscode) echo "Restart VS Code to load the settings (docs/vscode.md)." ;;
+    nvim) echo "Start nvim once to install plugins, parsers and language servers (docs/neovim.md)." ;;
+  esac
+}
+
+contains() {
+  case " $1 " in *" $2 "*) return 0 ;; esac
+  return 1
+}
+
+list_modules() {
+  local module bundle
+  for module in $INSTALL_MODULES $CONFIG_MODULES; do
+    printf '%s\n' "$module"
+    for bundle in $(module_bundles "$module"); do
+      printf '  package bundle: %s\n' "$bundle"
+    done
+    while IFS= read -r target; do
+      [[ -n "$target" ]] && printf '  managed file:   ~/%s\n' "$target"
+    done < <(module_targets "$module")
+    for step in $(module_steps "$module"); do
+      printf '  step:           %s\n' "$step"
+    done
+  done
+}
+
+dry_run=0
+packages=1
+selected=""
+
+while (( $# > 0 )); do
+  case "$1" in
+    -h | --help) usage; exit 0 ;;
+    -l | --list) list_modules; exit 0 ;;
+    -n | --dry-run) dry_run=1 ;;
+    --no-packages) packages=0 ;;
+    --print-targets)
+      # Tooling helper for CI: print "module<TAB>target" for every
+      # configuration module.
+      for module in $CONFIG_MODULES; do
+        module_targets "$module" | sed "s/^/$module$(printf '\t')/"
+      done
+      exit 0
+      ;;
+    all) selected="$selected $INSTALL_MODULES $CONFIG_MODULES" ;;
+    -*) usage >&2; die "unknown option: $1" ;;
+    *)
+      contains "$INSTALL_MODULES $CONFIG_MODULES" "$1" || { usage >&2; die "unknown module: $1"; }
+      selected="$selected $1"
+      ;;
+  esac
+  shift
+done
+
+if [[ -z "${selected// /}" ]]; then
+  usage
+  exit 2
+fi
+
+# Keep the canonical module order and drop repeats.
+modules=""
+for module in $INSTALL_MODULES $CONFIG_MODULES; do
+  contains "$selected" "$module" && modules="$modules $module"
+done
+modules="${modules# }"
+
+bundles=""
+if (( packages )); then
+  for module in $modules; do
+    for bundle in $(module_bundles "$module"); do
+      contains "$bundles" "$bundle" || bundles="$bundles $bundle"
+    done
+  done
+fi
+bundles="${bundles# }"
+
+config_modules=""
+for module in $modules; do
+  contains "$CONFIG_MODULES" "$module" && config_modules="$config_modules $module"
+done
+config_modules="${config_modules# }"
+
+failures=()
+fail() {
+  warn "$1"
+  failures+=("$1")
+}
+
+run() {
+  if (( dry_run )); then
+    printf '  would run: %s\n' "$*" >&2
+    return 0
+  fi
+  "$@"
+}
+
+[[ "$(uname -s)" == Darwin ]] || die "this setup targets macOS"
+refuse_root
+
+log "modules: $modules"
+(( dry_run )) && log "dry run: nothing will be changed"
+
+# Homebrew needs the Command Line Tools (clang, git).
+if [[ -n "$bundles" ]] && ! xcode-select -p >/dev/null 2>&1; then
+  die "Command Line Tools not found; run 'xcode-select --install', then rerun setup"
+fi
+
+# --- Packages ---------------------------------------------------------------
+if [[ -n "$bundles" ]]; then
+  if ! has brew && [[ -x /opt/homebrew/bin/brew ]]; then
+    PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+  fi
+  if ! has brew; then
+    log "installing Homebrew (official installer)"
+    if (( dry_run )); then
+      printf '  would run: the Homebrew installer from https://brew.sh\n' >&2
+    else
+      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" ||
+        die "Homebrew installation failed"
+      PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+    fi
+  fi
+
+  brewfile="$(mktemp -t dotfiles-setup)"
+  trap 'rm -f "$brewfile"' EXIT
+  for bundle in $bundles; do
+    printf '# %s\n' "$bundle"
+    cat "$REPO/$bundle"
+  done >"$brewfile"
+
+  log "installing packages from: $bundles"
+  if (( dry_run )); then
+    grep -E '^(brew|cask) ' "$brewfile" | sed 's/^/  would install: /' >&2
+  elif brew bundle install --no-upgrade --file="$brewfile"; then
+    ok "packages installed"
+  else
+    fail "brew bundle reported errors for: $bundles"
+  fi
+fi
+
+# --- Module steps ------------------------------------------------------------
+for module in $modules; do
+  (( packages )) || break
+  for step in $(module_steps "$module"); do
+    log "$module: $step"
+    run "$REPO/$step" || fail "$module: $step failed"
+  done
+done
+
+# --- Configuration -----------------------------------------------------------
+if [[ -n "$config_modules" ]]; then
+  if ! has chezmoi && [[ -x /opt/homebrew/bin/chezmoi ]]; then
+    PATH="/opt/homebrew/bin:$PATH"
+  fi
+  if ! has chezmoi && (( ! dry_run )); then
+    fail "chezmoi not found; install it (brew install chezmoi) and rerun to apply: $config_modules"
+  else
+    targets=()
+    for module in $config_modules; do
+      while IFS= read -r target; do
+        [[ -n "$target" ]] && targets+=("$HOME/$target")
+      done < <(module_targets "$module")
+    done
+    log "applying configuration: $config_modules"
+    if run chezmoi apply --source "$REPO" --parent-dirs "${targets[@]}"; then
+      ok "configuration applied: $config_modules"
+    else
+      fail "chezmoi apply failed for: $config_modules"
+    fi
+  fi
+fi
+
+# --- Summary -------------------------------------------------------------------
+for module in $modules; do
+  log "next ($module): $(module_notes "$module")"
+done
+if (( ${#failures[@]} > 0 )); then
+  for failure in "${failures[@]}"; do
+    printf '  failed: %s\n' "$failure" >&2
+  done
+  die "setup finished with ${#failures[@]} failure(s); fix them and rerun (reruns are safe)"
+fi
+ok "setup finished: $modules"

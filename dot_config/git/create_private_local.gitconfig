@@ -1,0 +1,3 @@
+# Per-machine Git overrides (identity, signing keys, credential helpers).
+# Created once by chezmoi and never overwritten or committed; included last by
+# ~/.gitconfig, so its values win.

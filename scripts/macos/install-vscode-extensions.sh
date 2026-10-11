@@ -1,8 +1,7 @@
 #!/bin/bash
 # Install the curated VS Code extensions from manifests/vscode-extensions.txt.
-# Only missing extensions are installed. Run by chezmoi
-# (run_onchange_after_25-vscode-extensions.sh.tmpl) whenever the manifest changes,
-# and safe to run by hand. Written for the bash 3.2 that ships with macOS.
+# Only missing extensions are installed. Run by `setup vscode` and safe to run
+# by hand. Written for the bash 3.2 that ships with macOS.
 
 set -euo pipefail
 
@@ -21,7 +20,7 @@ if ! has code && [[ -x "$bundle_bin/code" ]]; then
   PATH="$bundle_bin:$PATH"
 fi
 if ! has code; then
-  warn "VS Code is not installed yet (Brewfile cask visual-studio-code); skipping extensions"
+  warn "VS Code is not installed yet (setup vscode installs it); skipping extensions"
   exit 0
 fi
 

@@ -12,7 +12,7 @@ if [[ "$(uname -s)" != Darwin ]]; then
   exit 1
 fi
 if ! command -v mas >/dev/null 2>&1; then
-  echo "mas is not installed (Brewfile: brew \"mas\"). Run brew bundle first." >&2
+  echo "mas is not installed; run 'setup dev' (brew/dev.Brewfile) first." >&2
   exit 1
 fi
 

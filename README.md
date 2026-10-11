@@ -14,14 +14,15 @@ Install the Xcode Command Line Tools (`xcode-select --install`) if they are
 missing. The standalone chezmoi installer works before Homebrew is available:
 
 ```sh
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply RaioViajante
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init RaioViajante
+"$HOME/.local/share/chezmoi/setup" --help
 ```
 
-The first apply installs Homebrew if needed, runs `brew bundle` for the formulae
-and casks in `Brewfile`, installs extensions from
-`manifests/vscode-extensions.txt`, applies the dotfiles, and creates local
-configuration directories. `dot_gitconfig` supplies a public GitHub noreply
-identity; optional per-machine overrides live in the untracked
+`init` only clones the repository. The `setup` command installs and applies
+explicitly selected modules (for example `setup dev`, `setup shell git` or
+`setup all`); see [docs/setup.md](docs/setup.md). `chezmoi apply` applies the
+dotfiles only and never installs packages. `dot_gitconfig` supplies a public
+GitHub noreply identity; optional per-machine overrides live in the untracked
 `~/.config/git/local.gitconfig`.
 
 Register the Homebrew JDKs once so `java_home`, VS Code and IntelliJ can find
@@ -89,12 +90,8 @@ chezmoi diff            # inspect pending changes
 chezmoi apply           # apply local source changes
 ```
 
-To apply configuration without re-running `brew bundle` or the VS Code
-extension installer:
-
-```sh
-DOTFILES_SKIP_BREW_BUNDLE=1 chezmoi apply
-```
+`chezmoi apply` never runs `brew bundle` or the VS Code extension installer;
+use `setup` to install packages.
 
 After changing `.chezmoi.toml.tmpl`, run `chezmoi init` once to refresh the
 chezmoi configuration. It asks no questions.
