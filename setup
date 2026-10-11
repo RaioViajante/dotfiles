@@ -22,44 +22,54 @@ Install modules (packages only):
   ai        AI apps, OpenCode, and the Claude Code, Codex and Kimi Code CLIs
   content   Content creation: OBS, Blender, Krita, Audacity, FFmpeg
 
-Configuration modules (their own packages, then the managed dotfiles):
+Configuration modules (their software, then the managed dotfiles):
   shell     zsh, Starship, CLI tools, iTerm2 profile (made the default)
-  git       Git settings and per-account commit identities
-  vscode    VS Code, its settings and extensions
+  git       Git settings and per-account commit identities (no software)
+  vscode    VS Code, its extensions and settings
   nvim      Neovim, its dependencies and configuration
 
   all       Every module above
 
+Modes (default: software and configuration):
+      --packages-only  Software only: packages, Rust toolchain, AI CLIs and
+                       VS Code extensions. Never writes managed files, Git
+                       identities or the iTerm2 default profile.
+      --no-packages    Configuration only: apply the selected configuration
+                       modules (and the iTerm2 default for shell). Installs
+                       nothing; install-only modules are reported as skipped.
+
 Options:
-  -n, --dry-run      Show what would run, change nothing
-  -l, --list         List modules with their bundles and managed files
-      --no-packages  Skip all package installation; apply configuration only
-  -h, --help         Show this help
+  -n, --dry-run        Print the plan, change nothing
+  -l, --list           List modules with their bundles, files and steps
+  -h, --help           Show this help
 
 Examples:
-  setup dev                  Development tools only
-  setup shell git            Apply the shell and Git configuration
-  setup --no-packages nvim   Apply the Neovim configuration without installing
-  setup apps ai content      Combine install modules
-  setup all                  Complete setup
+  setup dev                        Development tools
+  setup --packages-only vscode     VS Code and its extensions, no settings
+  setup --no-packages shell git    Shell and Git configuration only
+  setup apps ai content            Several install modules
+  setup all                        Complete setup
 
-Nothing is installed without an explicit MODULE. See docs/setup.md.
+Nothing is installed or applied without an explicit MODULE. See docs/setup.md.
 EOF
 }
 
-# Bundles a module installs, shared dependencies first.
+# Software bundles a module installs, shared dependencies first.
 module_bundles() {
   case "$1" in
     apps) echo "brew/apps.Brewfile" ;;
     dev) echo "brew/shared/node.Brewfile brew/dev.Brewfile" ;;
     ai) echo "brew/ai.Brewfile" ;;
     content) echo "brew/content.Brewfile" ;;
-    shell) echo "brew/shared/chezmoi.Brewfile brew/shared/ripgrep.Brewfile brew/shared/nerd-font.Brewfile brew/shell.Brewfile" ;;
-    git) echo "brew/shared/chezmoi.Brewfile" ;;
-    vscode) echo "brew/shared/chezmoi.Brewfile brew/shared/nerd-font.Brewfile brew/vscode.Brewfile" ;;
-    nvim) echo "brew/shared/chezmoi.Brewfile brew/shared/ripgrep.Brewfile brew/shared/node.Brewfile brew/shared/nerd-font.Brewfile brew/nvim.Brewfile" ;;
+    shell) echo "brew/shared/ripgrep.Brewfile brew/shared/nerd-font.Brewfile brew/shell.Brewfile" ;;
+    vscode) echo "brew/shared/nerd-font.Brewfile brew/vscode.Brewfile" ;;
+    nvim) echo "brew/shared/ripgrep.Brewfile brew/shared/node.Brewfile brew/shared/nerd-font.Brewfile brew/nvim.Brewfile" ;;
   esac
 }
+
+# Installed whenever configuration is applied in the default mode: chezmoi
+# applies the managed files.
+CONFIG_BUNDLE="brew/shared/chezmoi.Brewfile"
 
 # Managed files a configuration module applies, relative to $HOME. Every file
 # chezmoi manages must belong to exactly one module (checked in CI).
@@ -73,7 +83,7 @@ module_targets() {
   esac
 }
 
-# Steps that run after a module's packages are installed (skipped with
+# Software steps that run after a module's packages are installed (skipped with
 # --no-packages).
 module_steps() {
   case "$1" in
@@ -83,7 +93,8 @@ module_steps() {
   esac
 }
 
-# Steps that run after a module's configuration is applied.
+# Steps that run after a module's configuration is applied (skipped with
+# --packages-only).
 module_config_steps() {
   case "$1" in
     shell) echo "scripts/macos/set-iterm-default-profile.sh" ;;
@@ -110,23 +121,28 @@ contains() {
 }
 
 list_modules() {
-  local module bundle
+  local module bundle step target
   for module in $INSTALL_MODULES $CONFIG_MODULES; do
     printf '%s\n' "$module"
     for bundle in $(module_bundles "$module"); do
-      printf '  package bundle: %s\n' "$bundle"
+      printf '  software:       %s\n' "$bundle"
+    done
+    for step in $(module_steps "$module"); do
+      printf '  software step:  %s\n' "$step"
     done
     while IFS= read -r target; do
       [[ -n "$target" ]] && printf '  managed file:   ~/%s\n' "$target"
     done < <(module_targets "$module")
-    for step in $(module_steps "$module") $(module_config_steps "$module"); do
-      printf '  step:           %s\n' "$step"
+    for step in $(module_config_steps "$module"); do
+      printf '  config step:    %s\n' "$step"
     done
   done
+  printf 'applying configuration also installs: %s\n' "$CONFIG_BUNDLE"
 }
 
 dry_run=0
-packages=1
+packages_only=0
+config_only=0
 selected=""
 
 while (( $# > 0 )); do
@@ -134,7 +150,8 @@ while (( $# > 0 )); do
     -h | --help) usage; exit 0 ;;
     -l | --list) list_modules; exit 0 ;;
     -n | --dry-run) dry_run=1 ;;
-    --no-packages) packages=0 ;;
+    --packages-only) packages_only=1 ;;
+    --no-packages) config_only=1 ;;
     --print-targets)
       # Tooling helper for CI: print "module<TAB>target" for every
       # configuration module.
@@ -153,6 +170,9 @@ while (( $# > 0 )); do
   shift
 done
 
+if (( packages_only && config_only )); then
+  die "--packages-only and --no-packages cannot be combined; drop both for software and configuration"
+fi
 if [[ -z "${selected// /}" ]]; then
   usage
   exit 2
@@ -165,21 +185,59 @@ for module in $INSTALL_MODULES $CONFIG_MODULES; do
 done
 modules="${modules# }"
 
+# --- Plan ----------------------------------------------------------------------
+# What each phase does for the selected modules in the chosen mode.
+software_modules=""   # modules with packages or software steps to run
+config_modules=""     # modules whose managed files are applied
+skipped=""            # "module: reason" entries
 bundles=""
-if (( packages )); then
-  for module in $modules; do
-    for bundle in $(module_bundles "$module"); do
-      contains "$bundles" "$bundle" || bundles="$bundles $bundle"
-    done
-  done
-fi
-bundles="${bundles# }"
 
-config_modules=""
 for module in $modules; do
-  contains "$CONFIG_MODULES" "$module" && config_modules="$config_modules $module"
+  has_software=0
+  [[ -n "$(module_bundles "$module")$(module_steps "$module")" ]] && has_software=1
+  is_config=0
+  contains "$CONFIG_MODULES" "$module" && is_config=1
+
+  if (( ! config_only )); then
+    if (( has_software )); then
+      software_modules="$software_modules $module"
+    elif (( ! packages_only )); then
+      skipped="$skipped|$module: no software to install"
+    fi
+  fi
+  if (( ! packages_only )); then
+    if (( is_config )); then
+      config_modules="$config_modules $module"
+    else
+      skipped="$skipped|$module: software-only module, nothing to configure"
+    fi
+  elif (( is_config )); then
+    if (( has_software )); then
+      skipped="$skipped|$module: configuration not applied (--packages-only)"
+    else
+      skipped="$skipped|$module: configuration-only module, no software to install"
+    fi
+  fi
 done
+software_modules="${software_modules# }"
 config_modules="${config_modules# }"
+
+if [[ -z "$software_modules$config_modules" ]]; then
+  printf '%s\n' "${skipped#|}" | tr '|' '\n' | sed 's/^/  skipped: /' >&2
+  die "nothing to do for: $modules"
+fi
+
+# chezmoi is needed to apply configuration; it is installed with the software
+# unless the run is configuration-only (then it must already be present).
+if [[ -n "$config_modules" ]] && (( ! config_only )); then
+  bundles="$CONFIG_BUNDLE"
+fi
+for module in $software_modules; do
+  for bundle in $(module_bundles "$module"); do
+    contains "$bundles" "$bundle" || bundles="$bundles $bundle"
+  done
+done
+bundles="${bundles# }"
 
 failures=()
 fail() {
@@ -198,7 +256,16 @@ run() {
 [[ "$(uname -s)" == Darwin ]] || die "this setup targets macOS"
 refuse_root
 
+mode="software and configuration"
+(( packages_only )) && mode="software only (--packages-only)"
+(( config_only )) && mode="configuration only (--no-packages)"
 log "modules: $modules"
+log "mode: $mode"
+log "software: ${software_modules:-none}"
+log "configuration: ${config_modules:-none}"
+if [[ -n "$skipped" ]]; then
+  printf '%s\n' "${skipped#|}" | tr '|' '\n' | sed 's/^/  skipped: /' >&2
+fi
 (( dry_run )) && log "dry run: nothing will be changed"
 
 # Homebrew needs the Command Line Tools (clang, git).
@@ -239,9 +306,8 @@ if [[ -n "$bundles" ]]; then
   fi
 fi
 
-# --- Module steps ------------------------------------------------------------
-for module in $modules; do
-  (( packages )) || break
+# --- Software steps ----------------------------------------------------------
+for module in $software_modules; do
   for step in $(module_steps "$module"); do
     log "$module: $step"
     run "$REPO/$step" || fail "$module: $step failed"
@@ -279,7 +345,12 @@ fi
 
 # --- Summary -------------------------------------------------------------------
 for module in $modules; do
-  log "next ($module): $(module_notes "$module")"
+  if contains "$config_modules" "$module" || contains "$INSTALL_MODULES" "$module"; then
+    contains "$software_modules $config_modules" "$module" &&
+      log "next ($module): $(module_notes "$module")"
+  elif contains "$software_modules" "$module"; then
+    log "next ($module): software installed; apply its configuration with './setup --no-packages $module'"
+  fi
 done
 if (( ${#failures[@]} > 0 )); then
   for failure in "${failures[@]}"; do
@@ -287,4 +358,4 @@ if (( ${#failures[@]} > 0 )); then
   done
   die "setup finished with ${#failures[@]} failure(s); fix them and rerun (reruns are safe)"
 fi
-ok "setup finished: $modules"
+ok "setup finished ($mode): $modules"

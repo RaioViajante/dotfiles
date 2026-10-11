@@ -112,6 +112,26 @@ jobs:
             echo "setup without a module must not succeed" >&2
             exit 1
           fi
+          # Mode boundaries (dry runs with a throwaway HOME).
+          export HOME="$(mktemp -d)"
+          if ./setup --dry-run --packages-only --no-packages dev >/dev/null 2>&1; then
+            echo "conflicting modes must be rejected" >&2
+            exit 1
+          fi
+          if ./setup --dry-run --packages-only git >/dev/null 2>&1; then
+            echo "--packages-only git has nothing to do and must fail" >&2
+            exit 1
+          fi
+          plan="$(./setup --dry-run --packages-only all 2>&1)"
+          if grep -qE 'applying configuration|chezmoi apply|set-iterm-default-profile' <<<"$plan"; then
+            echo "--packages-only must not apply configuration" >&2
+            exit 1
+          fi
+          plan="$(./setup --dry-run --no-packages all 2>&1)"
+          if grep -qE 'would install|install-ai-clis|setup-rust|install-vscode-extensions' <<<"$plan"; then
+            echo "--no-packages must not install software" >&2
+            exit 1
+          fi
 
       - name: Validate documentation
         shell: bash
