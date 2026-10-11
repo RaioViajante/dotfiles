@@ -74,11 +74,13 @@ cask "google-drive"
 cask "whatsapp"
 
 # Official AI desktop apps (installed alongside, never instead of, the Claude
-# Code and Codex CLIs, which are installed by their own vendors' installers into
-# ~/.local/bin). Claude Desktop includes Claude Code. OpenAI folded the
-# standalone Codex app into the ChatGPT desktop app (July 2026), so `chatgpt`
-# is the official macOS app that exposes Codex; the `codex-app` cask is
-# deprecated upstream and intentionally not used. Sign-in stays manual.
+# Code, Codex and Kimi Code CLIs, which come from their vendors' installers via
+# scripts/macos/install-ai-clis.sh). Claude Desktop includes Claude Code. OpenAI
+# folded the standalone Codex app into the ChatGPT desktop app (July 2026), so
+# `chatgpt` is the official macOS app that exposes Codex; the `codex-app` cask
+# is deprecated upstream and intentionally not used. The Kimi desktop app is
+# installed by hand from https://www.kimi.com/en/products/download. Sign-in
+# stays manual.
 cask "claude"
 cask "chatgpt"
 
