@@ -67,7 +67,11 @@ jobs:
             rendered="$(chezmoi execute-template --source "$PWD" < "$tmpl")"
             [ -z "$rendered" ] || printf '%s\n' "$rendered" | bash -n
           done
-          if command -v ruby >/dev/null; then ruby -c Brewfile; fi
+          if command -v ruby >/dev/null; then
+            for brewfile in Brewfile brew/*.Brewfile brew/shared/*.Brewfile; do
+              ruby -c "$brewfile" >/dev/null
+            done
+          fi
           git config --file dot_gitconfig --list >/dev/null
 
       - name: ShellCheck
