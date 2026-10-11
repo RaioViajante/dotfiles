@@ -170,3 +170,40 @@ tools are signed in by hand; see each module's documentation.
 - **`chezmoi: warning: config file template has changed`**: run `chezmoi init`
   once; it asks no questions.
 - **Which files would change?** `chezmoi diff` before `./setup`.
+
+## Repository layout and checks
+
+```text
+.
+├── setup                 # modular install and configuration command
+├── Brewfile              # composes brew/*.Brewfile
+├── brew/                 # package bundles per module (shared/ for common ones)
+├── manifests/            # Mac App Store apps and VS Code extensions
+├── docs/                 # documentation per module
+├── dot_gitconfig, dot_zprofile, dot_zshrc
+├── dot_config/           # git, nvim, starship.toml, zsh
+├── private_Library/      # VS Code settings and iTerm2 Dynamic Profile
+├── scripts/              # check-*.sh, lib.sh, macos/ setup steps and helpers
+└── .github/              # CI workflow and README assets
+```
+
+chezmoi applies files prefixed `dot_` under `$HOME` and maps `private_Library/`
+to `~/Library/`. `README.md`, `setup`, `Brewfile`, `brew/`, `docs/`,
+`manifests/`, `scripts/` and `.github/` stay in the source directory through
+`.chezmoiignore`.
+
+`.gitignore` excludes local SSH keys, credential files and per-machine Git
+overrides; shell history and application data are outside the managed source.
+Before committing, run:
+
+```sh
+./scripts/check-secrets.sh
+./scripts/check-modules.sh
+./scripts/check-docs.sh
+git diff --check
+```
+
+`.github/workflows/validate.yml` runs these and more on macOS: structure, Zsh
+and Bash syntax, ShellCheck, chezmoi rendering and a repeated isolated apply,
+manifests, setup modules and modes, documentation links and commands, the
+iTerm2 profile, secret patterns, language and whitespace.
