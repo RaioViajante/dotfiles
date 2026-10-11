@@ -41,26 +41,27 @@ brew bundle check --file="$(chezmoi source-path)/Brewfile"
 
 ## Managed configuration
 
-- `Brewfile` installs CLI tools, language runtimes, editors and desktop apps.
-  Node 24 and pnpm come from Homebrew; Java 25 is the shell default, with Java
-  21 available through the `jdk` function. Homebrew Python is the default;
-  `uv` and `pyenv` are available for project-specific versions.
+- `brew/*.Brewfile` define the packages of each setup module; the root
+  `Brewfile` composes them all. Node 24 and pnpm come from Homebrew; Java 25 is
+  the shell default, with Java 21 available through the `jdk` function.
+  Homebrew Python is the default and `uv` manages project-specific versions.
 - `dot_zprofile`, `dot_zshrc` and `dot_config/zsh/` set Homebrew paths, shell
   options, completion, aliases and helpers. `tools.zsh` integrates Starship,
   zoxide and other installed tools; `completion.zsh` loads fzf bindings.
-- `dot_gitconfig` sets Git behavior and a GitHub noreply identity.
-  GitHub authentication uses a local SSH key, created manually below.
+- `dot_gitconfig` sets Git behavior, a GitHub noreply identity and
+  per-account identities; GitHub authentication uses one SSH key per account
+  ([docs/git.md](docs/git.md)).
 - `dot_config/nvim/` contains the modular Neovim configuration and pinned
   plugin lockfile. VS Code user settings and the extension manifest cover the
   GUI editor. VS Code remains the primary editor; Neovim is the terminal editor
   and `EDITOR` fallback when `code` is absent.
 - `dot_config/starship.toml` configures the prompt. The iTerm2 Dynamic Profile
   under `private_Library/` configures the terminal. Both are applied by chezmoi.
-- `scripts/macos/` contains optional macOS preference, startup and service
-  helpers. The `run_*` templates handle Homebrew and post-apply setup.
+- `setup` installs and applies modules; `scripts/macos/` contains its steps and
+  optional macOS preference, startup and service helpers.
 
-`README.md`, `Brewfile`, `manifests/`, `scripts/` and `.github/` stay in the
-chezmoi source directory through `.chezmoiignore`. Files prefixed `dot_` are
+`README.md`, `setup`, `Brewfile`, `brew/`, `docs/`, `manifests/`, `scripts/`
+and `.github/` stay in the chezmoi source directory through `.chezmoiignore`. Files prefixed `dot_` are
 applied under `$HOME`; `private_Library/` maps to `~/Library/`.
 
 ## Repository layout
@@ -68,7 +69,10 @@ applied under `$HOME`; `private_Library/` maps to `~/Library/`.
 ```text
 .
 ├── .chezmoi.toml.tmpl, .chezmoiignore
-├── Brewfile
+├── setup                      # modular install and configuration command
+├── Brewfile                   # composes brew/*.Brewfile
+├── brew/                      # package bundles per module (shared/ for common ones)
+├── docs/                      # documentation per module
 ├── dot_gitconfig, dot_zprofile, dot_zshrc
 ├── dot_config/
 │   ├── nvim/                  # Neovim modules and plugin lockfile
@@ -77,9 +81,8 @@ applied under `$HOME`; `private_Library/` maps to `~/Library/`.
 ├── private_Library/          # VS Code settings and iTerm2 Dynamic Profile
 ├── manifests/                # Mac App Store apps and VS Code extensions
 ├── scripts/
-│   ├── check-secrets.sh, lib.sh
-│   └── macos/                # optional setup helpers
-└── run_*.sh.tmpl             # Homebrew and post-apply hooks
+│   ├── check-secrets.sh, check-modules.sh, lib.sh
+│   └── macos/                # setup steps and optional helpers
 ```
 
 ## Updating
@@ -107,23 +110,16 @@ After `:Lazy update`, record the lockfile with
 
 The iTerm2 profile is written to
 `~/Library/Application Support/iTerm2/DynamicProfiles/raioviajante.json`.
-iTerm2 loads it automatically; set it as the default in Settings → Profiles
-once. VS Code settings live in
+iTerm2 loads it automatically, and `setup shell` makes it the default
+profile. VS Code settings live in
 `~/Library/Application Support/Code/User/settings.json`.
 
 ## Manual steps
 
 - Sign in to GitHub and apps separately. SSH keys, tokens, browser profiles,
   Docker data and app credentials are never copied into this repository.
-- Create one GitHub SSH key per Mac and register its public half:
-
-  ```sh
-  ssh-keygen -t ed25519 -a 100 -f ~/.ssh/id_ed25519_github
-  gh auth login --hostname github.com --web --git-protocol ssh
-  ```
-
-  If `gh auth login` did not upload the public key, run
-  `gh ssh-key add ~/.ssh/id_ed25519_github.pub --type authentication --title "$(hostname)"`.
+- Set up the GitHub SSH keys, host aliases and commit identities for the
+  personal and college accounts as described in [docs/git.md](docs/git.md).
 
 - Set zsh as the login shell with `chsh -s "$(command -v zsh)"`, then log out
   and back in.
@@ -139,7 +135,7 @@ once. VS Code settings live in
 - `scripts/macos/setup-claude-config.sh` merges the configured Claude Code
   settings without storing credentials in this repository. MCP servers are
   installed and registered from their own repositories.
-- Docker Desktop and the desktop apps in `Brewfile` still require their own
+- Docker Desktop and the desktop apps in `brew/` still require their own
   first launch and sign-in. The macOS wallpaper and peripheral software are not
   managed here.
 
@@ -158,7 +154,8 @@ git status --short
 
 `.github/workflows/validate.yml` checks the repository on macOS: structure,
 Zsh and Bash syntax, ShellCheck, chezmoi rendering and an isolated repeated
-apply, manifests, iTerm2 JSON, secret patterns, language and whitespace.
+apply, manifests, setup modules, documentation links and commands, iTerm2
+JSON, secret patterns, language and whitespace.
 
 ## License
 
