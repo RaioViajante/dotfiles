@@ -35,10 +35,10 @@ commands below run from that directory.
 | `dev` | install | `shared/node.Brewfile`, `dev.Brewfile` | none | `scripts/macos/setup-rust.sh` |
 | `ai` | install | `ai.Brewfile` | none | `scripts/macos/install-ai-clis.sh` |
 | `content` | install | `content.Brewfile` | none | none |
-| `shell` | configuration | `shared/chezmoi`, `shared/ripgrep`, `shell.Brewfile` | `~/.zprofile`, `~/.zshrc`, `~/.config/zsh`, `~/.config/starship.toml`, iTerm2 Dynamic Profile | `scripts/macos/set-iterm-default-profile.sh` (after the files) |
+| `shell` | configuration | `shared/chezmoi`, `shared/ripgrep`, `shared/nerd-font`, `shell.Brewfile` | `~/.zprofile`, `~/.zshrc`, `~/.config/zsh`, `~/.config/starship.toml`, iTerm2 Dynamic Profile | `scripts/macos/set-iterm-default-profile.sh` (after the files) |
 | `git` | configuration | `shared/chezmoi` | `~/.gitconfig`, `~/.config/git` | none |
-| `vscode` | configuration | `shared/chezmoi`, `vscode.Brewfile` | VS Code `settings.json` | `scripts/macos/install-vscode-extensions.sh` |
-| `nvim` | configuration | `shared/chezmoi`, `shared/ripgrep`, `shared/node`, `nvim.Brewfile` | `~/.config/nvim` | none |
+| `vscode` | configuration | `shared/chezmoi`, `shared/nerd-font`, `vscode.Brewfile` | VS Code `settings.json` | `scripts/macos/install-vscode-extensions.sh` |
+| `nvim` | configuration | `shared/chezmoi`, `shared/ripgrep`, `shared/node`, `shared/nerd-font`, `nvim.Brewfile` | `~/.config/nvim` | none |
 
 `./setup --list` prints the same mapping from the script itself. Editors and
 the terminal are installed by their configuration modules: `dev` does not
@@ -68,7 +68,8 @@ Rust](development.md), [AI tools](ai.md), [content creation](content-creation.md
 
 1. **Packages.** Package membership lives only in `brew/*.Brewfile`; each
    package belongs to one bundle. Packages needed by several modules
-   (`chezmoi`, `ripgrep`, `node@24`) live in `brew/shared/` and are included
+   (`chezmoi`, `ripgrep`, `node@24`, the JetBrains Mono Nerd Font) live in
+   `brew/shared/` and are included
    once, only for modules that need them. `setup` concatenates the selected
    bundles and runs `brew bundle install --no-upgrade`: missing packages are
    installed, installed ones are not upgraded, and nothing is removed.

@@ -6,8 +6,8 @@ applies the modular Lua configuration in `~/.config/nvim`.
 ## Included
 
 - **Packages**: `neovim`, `fd`, `tree-sitter-cli` (`brew/nvim.Brewfile`), plus
-  the shared `ripgrep`, `node@24` (Mason installs most servers with npm) and
-  `chezmoi`. A C compiler comes from the Command Line Tools.
+  the shared `ripgrep`, `node@24` (Mason installs most servers with npm), the
+  JetBrains Mono Nerd Font (icons) and `chezmoi`. A C compiler comes from the Command Line Tools.
 - **Plugins** (pinned in `lazy-lock.json`): lazy.nvim, nvim-lspconfig, Mason
   with mason-lspconfig and mason-tool-installer, blink.cmp with
   friendly-snippets, conform.nvim, nvim-treesitter (`main` branch) and
@@ -113,5 +113,6 @@ nvim-treesitter, `:TSUpdate` refreshes the parsers.
   `:ConformInfo`, `:LspInfo` (or `:checkhealth vim.lsp`).
 - Parser build errors: check `tree-sitter --version` (0.26.1 or later) and the
   Command Line Tools.
-- Icons show as boxes: install the Nerd Font with `./setup shell`, or set
+- Icons show as boxes: the terminal is not using a Nerd Font; `./setup nvim`
+  installs JetBrains Mono Nerd Font, select it in your terminal, or set
   `vim.g.have_nerd_font = false`.

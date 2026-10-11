@@ -6,8 +6,8 @@ settings and installs the extensions listed in
 
 ## Included
 
-- **Package**: `cask "visual-studio-code"` (`brew/vscode.Brewfile`) and the
-  shared `chezmoi`.
+- **Packages**: `cask "visual-studio-code"` (`brew/vscode.Brewfile`), the
+  shared JetBrains Mono Nerd Font (terminal font) and `chezmoi`.
 - **Settings**: `~/Library/Application Support/Code/User/settings.json`
   (managed, kept minimal): Homebrew JDK 25/21 runtimes, Homebrew Python,
   rust-analyzer from rustup, Catppuccin Mocha with Material icons, the Nerd Font

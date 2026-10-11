@@ -5,9 +5,10 @@ zsh, Starship and iTerm2 configuration.
 
 ## Included
 
-- **Packages**: `starship`, `zoxide`, `fzf`, `eza`, `bat`, iTerm2 and the
-  JetBrains Mono Nerd Font (`brew/shell.Brewfile`), plus the shared `ripgrep`
-  and `chezmoi`.
+- **Packages**: `starship`, `zoxide`, `fzf`, `eza`, `bat` and iTerm2
+  (`brew/shell.Brewfile`), plus the shared `ripgrep`, `chezmoi` and JetBrains
+  Mono Nerd Font (`brew/shared/nerd-font.Brewfile`, also used by the vscode
+  and nvim modules).
 - **Managed files**:
   - `~/.zprofile`: Homebrew environment for login shells.
   - `~/.zshrc` and `~/.config/zsh/`: options, PATH, completion, aliases,

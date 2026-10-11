@@ -54,10 +54,10 @@ module_bundles() {
     dev) echo "brew/shared/node.Brewfile brew/dev.Brewfile" ;;
     ai) echo "brew/ai.Brewfile" ;;
     content) echo "brew/content.Brewfile" ;;
-    shell) echo "brew/shared/chezmoi.Brewfile brew/shared/ripgrep.Brewfile brew/shell.Brewfile" ;;
+    shell) echo "brew/shared/chezmoi.Brewfile brew/shared/ripgrep.Brewfile brew/shared/nerd-font.Brewfile brew/shell.Brewfile" ;;
     git) echo "brew/shared/chezmoi.Brewfile" ;;
-    vscode) echo "brew/shared/chezmoi.Brewfile brew/vscode.Brewfile" ;;
-    nvim) echo "brew/shared/chezmoi.Brewfile brew/shared/ripgrep.Brewfile brew/shared/node.Brewfile brew/nvim.Brewfile" ;;
+    vscode) echo "brew/shared/chezmoi.Brewfile brew/shared/nerd-font.Brewfile brew/vscode.Brewfile" ;;
+    nvim) echo "brew/shared/chezmoi.Brewfile brew/shared/ripgrep.Brewfile brew/shared/node.Brewfile brew/shared/nerd-font.Brewfile brew/nvim.Brewfile" ;;
   esac
 }
 
