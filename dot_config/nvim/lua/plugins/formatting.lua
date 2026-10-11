@@ -40,20 +40,39 @@ local function prettier_root(self, ctx)
     end)
 end
 
--- Pick Python formatters from the nearest project configuration: Black (with
--- isort when configured) where the project configures Black, isort alone where
--- only isort is configured, and Ruff otherwise. Never Black and Ruff together.
+-- Black reads [tool.black] from the nearest pyproject.toml.
+local function black_configured(dir)
+  local pyproject = vim.fs.find("pyproject.toml", { path = dir, upward = true })[1]
+  return pyproject ~= nil and file_contains(pyproject, "\n%[tool%.black%]")
+end
+
+-- isort uses the first directory upward with an isort section in one of its
+-- config files.
+local function isort_configured(dir)
+  local sections = {
+    [".isort.cfg"] = { "" },
+    ["pyproject.toml"] = { "\n%[tool%.isort%]" },
+    ["setup.cfg"] = { "\n%[isort%]", "\n%[tool:isort%]" },
+    ["tox.ini"] = { "\n%[isort%]", "\n%[tool:isort%]" },
+  }
+  return vim.fs.root(dir, function(name, path)
+    for _, pattern in ipairs(sections[name] or {}) do
+      if file_contains(vim.fs.joinpath(path, name), pattern) then
+        return true
+      end
+    end
+    return false
+  end) ~= nil
+end
+
+-- Python formatters follow explicit project configuration only, never installed
+-- dependencies: Black (after isort when isort is configured) where Black is
+-- configured, isort alone where only isort is, and Ruff otherwise (Ruff reads
+-- its own ruff.toml / [tool.ruff] settings, or uses its defaults). Black and
+-- Ruff never run together.
 local function python_formatters(bufnr)
   local dir = vim.fs.dirname(vim.api.nvim_buf_get_name(bufnr))
-  local root = vim.fs.root(dir, { "pyproject.toml", "ruff.toml", ".ruff.toml", "setup.cfg", "tox.ini", ".isort.cfg" })
-  local function has(file, pattern)
-    return root ~= nil and file_contains(vim.fs.joinpath(root, file), pattern)
-  end
-  local black = has("pyproject.toml", "%[tool%.black%]")
-  local isort = has("pyproject.toml", "%[tool%.isort%]")
-    or (root ~= nil and vim.uv.fs_stat(vim.fs.joinpath(root, ".isort.cfg")) ~= nil)
-    or has("setup.cfg", "%[isort%]")
-    or has("tox.ini", "%[isort%]")
+  local black, isort = black_configured(dir), isort_configured(dir)
   if black then
     return isort and { "isort", "black" } or { "black" }
   elseif isort then
