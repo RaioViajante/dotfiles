@@ -3,10 +3,11 @@
 # Claude Code (claude), Codex CLI (codex) and Kimi Code (kimi). Each installer
 # self-updates the tool afterwards. OpenCode comes from brew/ai.Brewfile.
 #
-# MANUAL step, never run by `chezmoi apply`. Idempotent: a tool whose command
-# is already available (from any install method) is skipped, so an existing
-# installation is never replaced or duplicated. Sign-in stays manual; no
-# credentials or tokens are read or written. Usage: install-ai-clis.sh
+# Run by `setup ai` (and `setup all`); safe to run by hand and to rerun. A tool
+# whose command is already available (from any install method) is skipped, so
+# an existing installation is never replaced or duplicated. Sign-in stays
+# manual; no credentials or tokens are read or written. Exits non-zero when any
+# installation fails. Usage: install-ai-clis.sh
 
 set -euo pipefail
 
@@ -18,13 +19,44 @@ refuse_root
 has curl || die "curl is required"
 
 # The managed zsh config already puts these directories on PATH. Adding them
-# here too stops the installers from appending their own PATH lines to the
-# chezmoi-managed ~/.zprofile and ~/.zshrc.
+# here too keeps the installers from appending their own PATH lines to shell
+# startup files; any edit that still happens is reverted below.
 export PATH="$HOME/.local/bin:$HOME/.kimi-code/bin:$PATH"
 export KIMI_NO_MODIFY_PATH=1
 
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
+
+shell_files=(.zshrc .zprofile .zshenv .bashrc .bash_profile .profile)
+
+# Keep a copy of each shell startup file (or a marker that it was absent).
+snapshot_shell_files() {
+  local file
+  rm -rf "$tmp_dir/shell" && mkdir -p "$tmp_dir/shell"
+  for file in "${shell_files[@]}"; do
+    if [[ -e "$HOME/$file" ]]; then
+      cp -p "$HOME/$file" "$tmp_dir/shell/$file"
+    else
+      : >"$tmp_dir/shell/$file.absent"
+    fi
+  done
+}
+
+# Undo any change an installer made to the shell startup files.
+restore_shell_files() {
+  local name="$1" file
+  for file in "${shell_files[@]}"; do
+    if [[ -e "$tmp_dir/shell/$file.absent" ]]; then
+      if [[ -e "$HOME/$file" ]]; then
+        rm -f "$HOME/$file"
+        warn "$name installer created ~/$file; removed it (PATH is managed by dot_config/zsh)"
+      fi
+    elif ! cmp -s "$tmp_dir/shell/$file" "$HOME/$file"; then
+      cp -p "$tmp_dir/shell/$file" "$HOME/$file"
+      warn "$name installer edited ~/$file; restored it (PATH is managed by dot_config/zsh)"
+    fi
+  done
+}
 
 installed=()
 skipped=()
@@ -33,7 +65,7 @@ failed=()
 # install_cli <name> <command> <installer-url> <interpreter>
 install_cli() {
   local name="$1" command="$2" url="$3" interpreter="$4"
-  local script="$tmp_dir/$command-install.sh"
+  local script="$tmp_dir/$command-install.sh" status=0
 
   if has "$command"; then
     ok "$name already installed ($(command -v "$command")); skipping"
@@ -47,8 +79,11 @@ install_cli() {
     failed+=("$name")
     return
   fi
-  if ! "$interpreter" "$script"; then
-    warn "the $name installer failed"
+  snapshot_shell_files
+  "$interpreter" "$script" || status=$?
+  restore_shell_files "$name"
+  if (( status != 0 )); then
+    warn "the $name installer failed (exit $status)"
     failed+=("$name")
     return
   fi
