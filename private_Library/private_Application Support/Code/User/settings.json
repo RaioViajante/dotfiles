@@ -30,12 +30,20 @@
   "workbench.iconTheme": "material-icon-theme",
   "workbench.colorTheme": "Catppuccin Mocha",
 
+  // The integrated terminal uses the Brewfile's Nerd Font so icon glyphs (for
+  // example in Neovim) render; the editor keeps the default font.
+  "terminal.integrated.fontFamily": "'JetBrainsMono Nerd Font Mono', Menlo, monospace",
+
+  // PHP Intelephense provides completion; turn off the built-in PHP suggestions
+  // so they are not listed twice.
+  "php.suggest.basic": false,
+
   // Show each nested single-child folder on its own line in the Explorer
   // instead of collapsing them into one "parent/child" row.
   "explorer.compactFolders": false,
 
-  // No Red Hat Java telemetry, set explicitly so
-  // the extension does not re-prompt after a chezmoi apply.
+  // No Red Hat telemetry (Java and YAML extensions), set explicitly so
+  // the extensions do not re-prompt after a chezmoi apply.
   "redhat.telemetry.enabled": false,
 
   // Copilot is not part of this setup; keep it off everywhere it could
