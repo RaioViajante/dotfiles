@@ -25,6 +25,7 @@ brew "fd"
 brew "node@24"
 brew "pnpm"
 brew "angular-cli"
+brew "vercel"
 
 # Java / Spring Boot
 brew "openjdk@21"
@@ -44,10 +45,9 @@ brew "python@3.14"
 # interpreter; uv only manages per-project environments and their own Python
 # versions (.python-version / pyproject.toml).
 brew "uv"
-# Python version manager. Installs and switches full interpreter versions
-# (pyenv install, pyenv global/local) for cases uv's per-project versions
-# don't cover; shell hook lives in tools.zsh.
-brew "pyenv"
+
+# Audio and video conversion for content work.
+brew "ffmpeg"
 
 # macOS Dock management. Used by scripts/macos/apply-preferences.sh to build a
 # deterministic Dock; not required at runtime.
@@ -64,12 +64,13 @@ cask "docker-desktop"
 cask "intellij-idea"
 cask "iterm2"
 cask "visual-studio-code"
-cask "warp"
 cask "mysqlworkbench"
 cask "postman"
 cask "spotify"
 cask "discord"
 cask "notion"
+cask "obsidian"
+cask "google-drive"
 cask "whatsapp"
 
 # Official AI desktop apps (installed alongside, never instead of, the Claude
@@ -81,8 +82,24 @@ cask "whatsapp"
 cask "claude"
 cask "chatgpt"
 
+# Terminal AI coding agent, installed and updated by Homebrew.
+brew "opencode"
+
 # Whiteboard / diagram notes. Native macOS Excalidraw client (third-party).
 cask "excalidrawz"
+
+# Content creation: recording and streaming, 3D, painting and audio editing.
+cask "obs"
+cask "blender"
+cask "krita"
+cask "audacity"
+
+# TeamSpeak 6 (beta, with screen sharing) is installed by hand from
+# https://teamspeak.com/en/downloads/ (Apple Silicon build): the
+# teamspeak-client@beta cask is disabled because it fails Gatekeeper checks.
+
+# Nerd Font for the iTerm2 profile, the VS Code terminal and Neovim icons.
+cask "font-jetbrains-mono-nerd-font"
 
 # Browsers. Zen is the daily driver; Firefox Developer Edition is for frontend
 # work and DevTools; Tor Browser stays independent. No Chrome.
