@@ -43,11 +43,16 @@ return {
   -- Auto-insert matching brackets and quotes.
   { "echasnovski/mini.pairs", version = false, event = "InsertEnter", opts = {} },
 
-  -- Extra text objects: around/inside function, argument, tag, and more.
+  -- Extra text objects: around/inside function, argument, tag, and more. The
+  -- function, class and block objects read the textobjects queries that
+  -- nvim-treesitter-textobjects provides.
   {
     "echasnovski/mini.ai",
     version = false,
     event = "VeryLazy",
+    dependencies = {
+      { "nvim-treesitter/nvim-treesitter-textobjects", branch = "main" },
+    },
     opts = function()
       local ai = require("mini.ai")
       return {

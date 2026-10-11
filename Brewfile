@@ -17,9 +17,11 @@ brew "shellcheck"
 brew "gitleaks"
 
 # Terminal editor. Neovim with a modular Lua config in dot_config/nvim; fd backs
-# its file picker and ripgrep (above) backs its text search.
+# its file picker, ripgrep (above) backs its text search and tree-sitter-cli
+# builds the nvim-treesitter parsers.
 brew "neovim"
 brew "fd"
+brew "tree-sitter-cli"
 
 # JavaScript / TypeScript
 brew "node@24"
