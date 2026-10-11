@@ -1,0 +1,357 @@
+#!/bin/bash
+# Modular macOS setup: install package modules and apply configuration modules.
+# Package membership lives in brew/*.Brewfile; this script only maps module
+# names to bundles, chezmoi targets and post-install steps. Run with --help.
+# Written for the bash 3.2 that ships with macOS.
+
+set -euo pipefail
+
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$REPO/scripts/lib.sh"
+
+INSTALL_MODULES="apps dev ai content"
+CONFIG_MODULES="shell git vscode nvim"
+
+usage() {
+  cat <<'EOF'
+Usage: setup [options] MODULE...
+
+Install modules (packages only):
+  apps      Desktop apps: productivity, communication, browsers, Proton
+  dev       Development tools: runtimes, databases, CLIs, developer apps, Rust
+  ai        AI apps, OpenCode, and the Claude Code, Codex and Kimi Code CLIs
+  content   Content creation: OBS, Blender, Krita, Audacity, FFmpeg
+
+Configuration modules (their software, then the managed dotfiles):
+  shell     zsh, Starship, CLI tools, iTerm2 profile (made the default)
+  git       Git settings and per-account commit identities (no software)
+  vscode    VS Code, its extensions and settings
+  nvim      Neovim, its dependencies and configuration
+
+  all       Every module above
+
+Modes (default: software and configuration):
+      --packages-only  Software only: packages, Rust toolchain, AI CLIs and
+                       VS Code extensions. Never writes managed files, Git
+                       identities or the iTerm2 default profile.
+      --no-packages    Configuration only: apply the selected configuration
+                       modules (and the iTerm2 default for shell). Installs
+                       nothing; install-only modules are reported as skipped.
+
+Options:
+  -n, --dry-run        Print the plan, change nothing
+  -l, --list           List modules with their bundles, files and steps
+  -h, --help           Show this help
+
+Examples:
+  setup dev                        Development tools
+  setup --packages-only vscode     VS Code and its extensions, no settings
+  setup --no-packages shell git    Shell and Git configuration only
+  setup apps ai content            Several install modules
+  setup all                        Complete setup
+
+Nothing is installed or applied without an explicit MODULE. See docs/setup.md.
+EOF
+}
+
+# Software bundles a module installs, shared dependencies first.
+module_bundles() {
+  case "$1" in
+    apps) echo "brew/apps.Brewfile" ;;
+    dev) echo "brew/shared/node.Brewfile brew/dev.Brewfile" ;;
+    ai) echo "brew/ai.Brewfile" ;;
+    content) echo "brew/content.Brewfile" ;;
+    shell) echo "brew/shared/ripgrep.Brewfile brew/shared/nerd-font.Brewfile brew/shell.Brewfile" ;;
+    vscode) echo "brew/shared/nerd-font.Brewfile brew/vscode.Brewfile" ;;
+    nvim) echo "brew/shared/ripgrep.Brewfile brew/shared/node.Brewfile brew/shared/nerd-font.Brewfile brew/nvim.Brewfile" ;;
+  esac
+}
+
+# Installed whenever configuration is applied in the default mode: chezmoi
+# applies the managed files.
+CONFIG_BUNDLE="brew/shared/chezmoi.Brewfile"
+
+# Managed files a configuration module applies, relative to $HOME. Every file
+# chezmoi manages must belong to exactly one module (checked in CI).
+module_targets() {
+  case "$1" in
+    shell) printf '%s\n' .zprofile .zshrc .config/zsh .config/starship.toml \
+      "Library/Application Support/iTerm2/DynamicProfiles" ;;
+    git) printf '%s\n' .gitconfig .config/git ;;
+    vscode) printf '%s\n' "Library/Application Support/Code/User/settings.json" ;;
+    nvim) printf '%s\n' .config/nvim ;;
+  esac
+}
+
+# Software steps that run after a module's packages are installed (skipped with
+# --no-packages).
+module_steps() {
+  case "$1" in
+    dev) echo "scripts/macos/setup-rust.sh" ;;
+    ai) echo "scripts/macos/install-ai-clis.sh" ;;
+    vscode) echo "scripts/macos/install-vscode-extensions.sh" ;;
+  esac
+}
+
+# Steps that run after a module's configuration is applied (skipped with
+# --packages-only).
+module_config_steps() {
+  case "$1" in
+    shell) echo "scripts/macos/set-iterm-default-profile.sh" ;;
+  esac
+}
+
+# Manual follow-ups printed in the summary.
+module_notes() {
+  case "$1" in
+    apps) echo "Sign in to each app. Install TeamSpeak 6 and Proton Authenticator by hand (docs/apps.md)." ;;
+    dev) echo "Register the JDKs (scripts/macos/register-jdks.sh) and, after an App Store sign-in, run scripts/macos/install-mas-apps.sh for Xcode (docs/development.md)." ;;
+    ai) echo "Sign in to each AI app and CLI interactively; install the Kimi desktop app by hand (docs/ai.md)." ;;
+    content) echo "Open each app once to finish its first-run setup (docs/content-creation.md)." ;;
+    shell) echo "Open a new terminal to load the shell configuration (docs/shell-and-terminal.md)." ;;
+    git) echo "Set your identity in ~/.config/git/identity.gitconfig and the per-account files; SSH keys and sign-in are separate steps (docs/git.md)." ;;
+    vscode) echo "Restart VS Code to load the settings (docs/vscode.md)." ;;
+    nvim) echo "Start nvim once to install plugins, parsers and language servers (docs/neovim.md)." ;;
+  esac
+}
+
+contains() {
+  case " $1 " in *" $2 "*) return 0 ;; esac
+  return 1
+}
+
+list_modules() {
+  local module bundle step target
+  for module in $INSTALL_MODULES $CONFIG_MODULES; do
+    printf '%s\n' "$module"
+    for bundle in $(module_bundles "$module"); do
+      printf '  software:       %s\n' "$bundle"
+    done
+    for step in $(module_steps "$module"); do
+      printf '  software step:  %s\n' "$step"
+    done
+    while IFS= read -r target; do
+      [[ -n "$target" ]] && printf '  managed file:   ~/%s\n' "$target"
+    done < <(module_targets "$module")
+    for step in $(module_config_steps "$module"); do
+      printf '  config step:    %s\n' "$step"
+    done
+  done
+  printf 'applying configuration also installs: %s\n' "$CONFIG_BUNDLE"
+}
+
+dry_run=0
+packages_only=0
+config_only=0
+selected=""
+
+while (( $# > 0 )); do
+  case "$1" in
+    -h | --help) usage; exit 0 ;;
+    -l | --list) list_modules; exit 0 ;;
+    -n | --dry-run) dry_run=1 ;;
+    --packages-only) packages_only=1 ;;
+    --no-packages) config_only=1 ;;
+    --print-targets)
+      # Tooling helper for CI: print "module<TAB>target" for every
+      # configuration module.
+      for module in $CONFIG_MODULES; do
+        module_targets "$module" | sed "s/^/$module$(printf '\t')/"
+      done
+      exit 0
+      ;;
+    all) selected="$selected $INSTALL_MODULES $CONFIG_MODULES" ;;
+    -*) usage >&2; die "unknown option: $1" ;;
+    *)
+      contains "$INSTALL_MODULES $CONFIG_MODULES" "$1" || { usage >&2; die "unknown module: $1"; }
+      selected="$selected $1"
+      ;;
+  esac
+  shift
+done
+
+if (( packages_only && config_only )); then
+  die "--packages-only and --no-packages cannot be combined; drop both for software and configuration"
+fi
+if [[ -z "${selected// /}" ]]; then
+  usage
+  exit 2
+fi
+
+# Keep the canonical module order and drop repeats.
+modules=""
+for module in $INSTALL_MODULES $CONFIG_MODULES; do
+  contains "$selected" "$module" && modules="$modules $module"
+done
+modules="${modules# }"
+
+# --- Plan ----------------------------------------------------------------------
+# What each phase does for the selected modules in the chosen mode.
+software_modules=""   # modules with packages or software steps to run
+config_modules=""     # modules whose managed files are applied
+skipped=""            # "module: reason" entries
+bundles=""
+
+for module in $modules; do
+  has_software=0
+  [[ -n "$(module_bundles "$module")$(module_steps "$module")" ]] && has_software=1
+  is_config=0
+  contains "$CONFIG_MODULES" "$module" && is_config=1
+
+  if (( ! config_only )); then
+    if (( has_software )); then
+      software_modules="$software_modules $module"
+    elif (( ! packages_only )); then
+      skipped="$skipped|$module: no software to install"
+    fi
+  fi
+  if (( ! packages_only )); then
+    if (( is_config )); then
+      config_modules="$config_modules $module"
+    else
+      skipped="$skipped|$module: software-only module, nothing to configure"
+    fi
+  elif (( is_config )); then
+    if (( has_software )); then
+      skipped="$skipped|$module: configuration not applied (--packages-only)"
+    else
+      skipped="$skipped|$module: configuration-only module, no software to install"
+    fi
+  fi
+done
+software_modules="${software_modules# }"
+config_modules="${config_modules# }"
+
+if [[ -z "$software_modules$config_modules" ]]; then
+  printf '%s\n' "${skipped#|}" | tr '|' '\n' | sed 's/^/  skipped: /' >&2
+  die "nothing to do for: $modules"
+fi
+
+# chezmoi is needed to apply configuration; it is installed with the software
+# unless the run is configuration-only (then it must already be present).
+if [[ -n "$config_modules" ]] && (( ! config_only )); then
+  bundles="$CONFIG_BUNDLE"
+fi
+for module in $software_modules; do
+  for bundle in $(module_bundles "$module"); do
+    contains "$bundles" "$bundle" || bundles="$bundles $bundle"
+  done
+done
+bundles="${bundles# }"
+
+failures=()
+fail() {
+  warn "$1"
+  failures+=("$1")
+}
+
+run() {
+  if (( dry_run )); then
+    printf '  would run: %s\n' "$*" >&2
+    return 0
+  fi
+  "$@"
+}
+
+[[ "$(uname -s)" == Darwin ]] || die "this setup targets macOS"
+refuse_root
+
+mode="software and configuration"
+(( packages_only )) && mode="software only (--packages-only)"
+(( config_only )) && mode="configuration only (--no-packages)"
+log "modules: $modules"
+log "mode: $mode"
+log "software: ${software_modules:-none}"
+log "configuration: ${config_modules:-none}"
+if [[ -n "$skipped" ]]; then
+  printf '%s\n' "${skipped#|}" | tr '|' '\n' | sed 's/^/  skipped: /' >&2
+fi
+(( dry_run )) && log "dry run: nothing will be changed"
+
+# Homebrew needs the Command Line Tools (clang, git).
+if [[ -n "$bundles" ]] && ! xcode-select -p >/dev/null 2>&1; then
+  die "Command Line Tools not found; run 'xcode-select --install', then rerun setup"
+fi
+
+# --- Packages ---------------------------------------------------------------
+if [[ -n "$bundles" ]]; then
+  # Homebrew goes on PATH for this process only; shell files are not edited.
+  if ! has brew && ! use_homebrew; then
+    log "installing Homebrew (official installer)"
+    if (( dry_run )); then
+      printf '  would run: the Homebrew installer from https://brew.sh\n' >&2
+    else
+      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" ||
+        die "Homebrew installation failed"
+      use_homebrew || die "Homebrew installed but brew was not found under $(homebrew_prefix)"
+    fi
+  fi
+
+  brewfile="$(mktemp -t dotfiles-setup)"
+  trap 'rm -f "$brewfile"' EXIT
+  for bundle in $bundles; do
+    printf '# %s\n' "$bundle"
+    cat "$REPO/$bundle"
+  done >"$brewfile"
+
+  log "installing packages from: $bundles"
+  if (( dry_run )); then
+    grep -E '^(brew|cask) ' "$brewfile" | sed 's/^/  would install: /' >&2
+  elif brew bundle install --no-upgrade --file="$brewfile"; then
+    ok "packages installed"
+  else
+    fail "brew bundle reported errors for: $bundles"
+  fi
+fi
+
+# --- Software steps ----------------------------------------------------------
+for module in $software_modules; do
+  for step in $(module_steps "$module"); do
+    log "$module: $step"
+    run "$REPO/$step" || fail "$module: $step failed"
+  done
+done
+
+# --- Configuration -----------------------------------------------------------
+if [[ -n "$config_modules" ]]; then
+  has chezmoi || use_homebrew || true
+  if ! has chezmoi && (( ! dry_run )); then
+    fail "chezmoi not found; install it (brew install chezmoi) and rerun to apply: $config_modules"
+  else
+    targets=()
+    for module in $config_modules; do
+      while IFS= read -r target; do
+        [[ -n "$target" ]] && targets+=("$HOME/$target")
+      done < <(module_targets "$module")
+    done
+    log "applying configuration: $config_modules"
+    if run chezmoi apply --source "$REPO" --parent-dirs "${targets[@]}"; then
+      ok "configuration applied: $config_modules"
+      for module in $config_modules; do
+        for step in $(module_config_steps "$module"); do
+          log "$module: $step"
+          run "$REPO/$step" || fail "$module: $step failed"
+        done
+      done
+    else
+      fail "chezmoi apply failed for: $config_modules"
+    fi
+  fi
+fi
+
+# --- Summary -------------------------------------------------------------------
+for module in $modules; do
+  if contains "$config_modules" "$module" || contains "$INSTALL_MODULES" "$module"; then
+    contains "$software_modules $config_modules" "$module" &&
+      log "next ($module): $(module_notes "$module")"
+  elif contains "$software_modules" "$module"; then
+    log "next ($module): software installed; apply its configuration with './setup --no-packages $module'"
+  fi
+done
+if (( ${#failures[@]} > 0 )); then
+  for failure in "${failures[@]}"; do
+    printf '  failed: %s\n' "$failure" >&2
+  done
+  die "setup finished with ${#failures[@]} failure(s); fix them and rerun (reruns are safe)"
+fi
+ok "setup finished ($mode): $modules"

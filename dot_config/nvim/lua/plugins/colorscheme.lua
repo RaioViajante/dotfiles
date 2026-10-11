@@ -11,7 +11,7 @@ return {
     transparent_background = false,
     term_colors = true,
     integrations = {
-      cmp = true,
+      blink_cmp = true,
       gitsigns = true,
       neotree = true,
       telescope = true,

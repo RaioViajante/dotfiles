@@ -25,7 +25,10 @@ jobs:
         run: |
           set -euo pipefail
           required=(
-            README.md Brewfile
+            README.md Brewfile setup
+            brew/apps.Brewfile brew/dev.Brewfile brew/ai.Brewfile
+            brew/content.Brewfile brew/shell.Brewfile brew/vscode.Brewfile
+            brew/nvim.Brewfile
             .chezmoi.toml.tmpl .chezmoiignore
             dot_zshrc dot_zprofile dot_gitconfig
             dot_config/starship.toml
@@ -41,6 +44,8 @@ jobs:
             manifests/vscode-extensions.txt
             scripts/lib.sh
             scripts/check-secrets.sh
+            scripts/check-modules.sh
+            scripts/check-docs.sh
             scripts/macos/apply-preferences.sh
             scripts/macos/macos-defaults.sh
             scripts/macos/register-jdks.sh
@@ -59,15 +64,20 @@ jobs:
           for file in dot_zshrc dot_zprofile dot_config/zsh/*.zsh; do
             zsh -n "$file"
           done
-          # Bootstrap scripts and templated run scripts.
-          for file in scripts/*.sh scripts/*/*.sh; do
+          # Setup command, helper scripts and any templated run scripts.
+          shopt -s nullglob
+          for file in setup scripts/*.sh scripts/*/*.sh; do
             bash -n "$file"
           done
           for tmpl in run_*.sh.tmpl; do
             rendered="$(chezmoi execute-template --source "$PWD" < "$tmpl")"
             [ -z "$rendered" ] || printf '%s\n' "$rendered" | bash -n
           done
-          if command -v ruby >/dev/null; then ruby -c Brewfile; fi
+          if command -v ruby >/dev/null; then
+            for brewfile in Brewfile brew/*.Brewfile brew/shared/*.Brewfile; do
+              ruby -c "$brewfile" >/dev/null
+            done
+          fi
           git config --file dot_gitconfig --list >/dev/null
 
       - name: ShellCheck
@@ -75,8 +85,8 @@ jobs:
         run: |
           set -euo pipefail
           # SC1091: library path is resolved at runtime from ${BASH_SOURCE}.
-          shellcheck -x -e SC1091 scripts/lib.sh scripts/check-secrets.sh \
-            scripts/macos/*.sh
+          shellcheck -x -e SC1091 setup scripts/lib.sh scripts/check-secrets.sh \
+            scripts/check-modules.sh scripts/check-docs.sh scripts/macos/*.sh
 
       - name: Validate chezmoi templates and manifests
         shell: bash
@@ -90,6 +100,44 @@ jobs:
             dupes="$(printf '%s\n' "$entries" | sort | uniq -d)"
             [ -z "$dupes" ] || { echo "duplicate entries in $manifest: $dupes" >&2; exit 1; }
           done
+
+      - name: Validate setup modules
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./scripts/check-modules.sh
+          ./setup --help >/dev/null
+          # No module selected: print help and refuse to install anything.
+          if ./setup >/dev/null 2>&1; then
+            echo "setup without a module must not succeed" >&2
+            exit 1
+          fi
+          # Mode boundaries (dry runs with a throwaway HOME).
+          export HOME="$(mktemp -d)"
+          if ./setup --dry-run --packages-only --no-packages dev >/dev/null 2>&1; then
+            echo "conflicting modes must be rejected" >&2
+            exit 1
+          fi
+          if ./setup --dry-run --packages-only git >/dev/null 2>&1; then
+            echo "--packages-only git has nothing to do and must fail" >&2
+            exit 1
+          fi
+          plan="$(./setup --dry-run --packages-only all 2>&1)"
+          if grep -qE 'applying configuration|chezmoi apply|set-iterm-default-profile' <<<"$plan"; then
+            echo "--packages-only must not apply configuration" >&2
+            exit 1
+          fi
+          plan="$(./setup --dry-run --no-packages all 2>&1)"
+          if grep -qE 'would install|install-ai-clis|setup-rust|install-vscode-extensions' <<<"$plan"; then
+            echo "--no-packages must not install software" >&2
+            exit 1
+          fi
+
+      - name: Validate documentation
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./scripts/check-docs.sh
 
       - name: Validate the iTerm2 Dynamic Profile
         shell: bash
@@ -111,8 +159,8 @@ jobs:
         run: |
           set -euo pipefail
           ./scripts/check-secrets.sh
-          # The managed Git identity (a github.com noreply address) is allowed;
-          # the real personal address and absolute home paths are not.
+          # GitHub noreply addresses are allowed; the real personal address and
+          # absolute home paths are not.
           if rg -n --hidden --glob '!**/.git/**' --glob '!.github/workflows/validate.yml' \
             '(/Users/|/home/[a-z]|bryancalvarenga|outlook\.com)' .; then
             echo "Machine-specific identity or path found." >&2
@@ -161,7 +209,7 @@ jobs:
           cz apply --exclude=scripts,encrypted
           test -z "$(cz diff --exclude=scripts,encrypted)"
           expected=(
-            .zshrc .zprofile .gitconfig
+            .zshrc .zprofile .gitconfig .config/git/local.gitconfig
             .config/zsh/paths.zsh .config/zsh/dev.zsh
             .config/starship.toml .config/nvim/init.lua
             'Library/Application Support/Code/User/settings.json'

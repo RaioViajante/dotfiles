@@ -11,9 +11,9 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
--- The terminal font (Monaco) is not a Nerd Font, so plugins fall back to ASCII.
--- Install a Nerd Font and set this to true for file-type and git glyphs.
-vim.g.have_nerd_font = false
+-- The iTerm2 profile uses JetBrainsMono Nerd Font Mono (Brewfile), so plugins
+-- draw file-type and diagnostic glyphs. Set to false for a plain font.
+vim.g.have_nerd_font = true
 
 require("config.options")
 require("config.keymaps")

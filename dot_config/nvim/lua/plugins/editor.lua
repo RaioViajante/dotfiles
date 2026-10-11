@@ -21,14 +21,18 @@ return {
     },
   },
 
-  -- Status line. Icons off to match the terminal font.
+  -- File-type icons for the status line, explorer, picker and which-key; loaded
+  -- on first use.
+  { "nvim-tree/nvim-web-devicons", lazy = true, enabled = vim.g.have_nerd_font },
+
+  -- Status line.
   {
     "nvim-lualine/lualine.nvim",
     event = "VeryLazy",
     opts = {
       options = {
         theme = "catppuccin",
-        icons_enabled = false,
+        icons_enabled = vim.g.have_nerd_font,
         component_separators = "|",
         section_separators = "",
         globalstatus = true,
@@ -43,11 +47,16 @@ return {
   -- Auto-insert matching brackets and quotes.
   { "echasnovski/mini.pairs", version = false, event = "InsertEnter", opts = {} },
 
-  -- Extra text objects: around/inside function, argument, tag, and more.
+  -- Extra text objects: around/inside function, argument, tag, and more. The
+  -- function, class and block objects read the textobjects queries that
+  -- nvim-treesitter-textobjects provides.
   {
     "echasnovski/mini.ai",
     version = false,
     event = "VeryLazy",
+    dependencies = {
+      { "nvim-treesitter/nvim-treesitter-textobjects", branch = "main" },
+    },
     opts = function()
       local ai = require("mini.ai")
       return {

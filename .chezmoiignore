@@ -1,6 +1,9 @@
 README.md
+setup
+docs/**
 LICENSE
 Brewfile
+brew/**
 manifests/**
 scripts/**
 .github/**

@@ -14,11 +14,20 @@ esbenp.prettier-vscode
 vmware.vscode-boot-dev-pack
 vscjava.vscode-java-pack
 
+# PHP / Laravel
+bmewburn.vscode-intelephense-client
+laravel.vscode-laravel
+
+# Rust (the server comes from rustup; see settings.json)
+rust-lang.rust-analyzer
+
 # Python
+charliermarsh.ruff
 ms-python.python
 
-# Containers and databases
+# Containers, configuration and databases
 ms-azuretools.vscode-containers
+redhat.vscode-yaml
 mtxr.sqltools
 mtxr.sqltools-driver-mysql
 mtxr.sqltools-driver-pg

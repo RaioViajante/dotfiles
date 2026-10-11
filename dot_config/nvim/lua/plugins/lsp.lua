@@ -20,11 +20,13 @@ return {
       "saghen/blink.cmp",
     },
     config = function()
-      require("mason").setup({ ui = { border = "rounded" } })
+      -- mason.nvim is already set up from its own spec (a dependency above).
 
       -- Mason package names. Servers cover TypeScript / JavaScript / Angular,
-      -- HTML / CSS / JSON, ESLint, PHP, Python, Java, Lua, Bash and YAML; the
-      -- rest are the command-line formatters conform.nvim runs.
+      -- HTML / CSS / Tailwind / JSON, ESLint, PHP, Python, Java, Lua, Bash,
+      -- YAML and Markdown; the rest are the command-line formatters
+      -- conform.nvim runs. rust-analyzer is not installed here: it comes from
+      -- rustup (setup dev) and is enabled below.
       require("mason-tool-installer").setup({
         ensure_installed = {
           "lua-language-server",
@@ -32,6 +34,7 @@ return {
           "angular-language-server",
           "html-lsp",
           "css-lsp",
+          "tailwindcss-language-server",
           "json-lsp",
           "emmet-language-server",
           "eslint-lsp",
@@ -41,6 +44,7 @@ return {
           "jdtls",
           "bash-language-server",
           "yaml-language-server",
+          "marksman",
           "stylua",
           "prettierd",
           "shfmt",
@@ -68,6 +72,9 @@ return {
             },
           },
         },
+        -- Only start inside an Angular workspace (angular.json / nx.json), not
+        -- in every TypeScript and HTML buffer.
+        angularls = { workspace_required = true },
         eslint = {
           settings = { workingDirectories = { mode = "auto" } },
         },
@@ -88,9 +95,16 @@ return {
       require("mason-lspconfig").setup({
         ensure_installed = {},
         automatic_enable = {
-          exclude = { "stylua" },
+          exclude = { "stylua", "rust_analyzer" },
         },
       })
+
+      -- rust-analyzer from rustup's proxy, which follows the project's
+      -- rust-toolchain.toml; rustfmt formats through it (format on save falls
+      -- back to the language server).
+      if vim.fn.executable("rust-analyzer") == 1 then
+        vim.lsp.enable("rust_analyzer")
+      end
 
       -- Buffer-local keymaps once a server attaches. Neovim 0.11+ already binds
       -- grn / gra / grr / gri / gO; these add Telescope pickers and hints.
@@ -116,7 +130,8 @@ return {
         end,
       })
 
-      local sign = vim.g.have_nerd_font and { ERROR = "", WARN = "", INFO = "", HINT = "" }
+      local sign = vim.g.have_nerd_font
+          and { ERROR = "\u{f057}", WARN = "\u{f071}", INFO = "\u{f05a}", HINT = "\u{f0eb}" }
         or { ERROR = "E", WARN = "W", INFO = "I", HINT = "H" }
       vim.diagnostic.config({
         severity_sort = true,

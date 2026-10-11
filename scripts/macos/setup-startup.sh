@@ -31,6 +31,10 @@ for app in "${login_apps[@]}"; do
   fi
 done
 
+# Homebrew's bin may not be on PATH when the managed shell is not in use.
+if ! command -v brew >/dev/null 2>&1 && [[ -x /opt/homebrew/bin/brew ]]; then
+  eval "$(/opt/homebrew/bin/brew shellenv bash)"
+fi
 if command -v brew >/dev/null 2>&1 && brew list --formula mysql >/dev/null 2>&1; then
   if brew services list | awk '$1 == "mysql" { print $2 }' | grep -qx started; then
     echo "ok:  mysql service already started" >&2
