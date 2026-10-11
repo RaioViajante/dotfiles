@@ -1,42 +1,62 @@
 # Git and GitHub accounts
 
-The `git` configuration module applies Git settings and per-account commit
-identities. It installs only the shared `chezmoi`; Git itself comes from the
-Command Line Tools and the GitHub CLI (`gh`) from the [dev module](development.md).
+The `git` configuration module applies Git settings and the includes for your
+commit identities. No identity is versioned: names and email addresses live
+only in untracked files you create. The module installs no software of its own
+(`chezmoi` is installed when configuration is applied); Git itself comes from
+the Command Line Tools and the GitHub CLI (`gh`) from the
+[dev module](development.md). Applying it needs no sign-in and no SSH keys.
 
 ## Included
 
 - `~/.gitconfig`: defaults (main branch, fast-forward pulls, histogram diffs,
-  zdiff3 conflicts, aliases), a public GitHub noreply identity and the includes
-  below.
+  zdiff3 conflicts, aliases), `user.useConfigOnly = true` (Git refuses to
+  commit rather than guess an identity) and the identity includes below.
 - `~/.config/git/ignore`: global ignores (`.DS_Store`, `.env` files, local
   Claude settings).
-- `~/.config/git/local.gitconfig`: created once with a short comment, mode
-  600, never overwritten and never committed. It is included last, so its values win;
-  use it for per-machine settings such as credential helpers or signing keys.
+- `~/.config/git/identity.gitconfig`: your default identity. Created once
+  with instructions in comments (mode 600), never overwritten or committed.
+- `~/.config/git/local.gitconfig`: created the same way and included last, so
+  its values win everywhere; use it for per-machine settings such as
+  credential helpers or signing keys.
 
 ## Apply
 
 ```sh
 cd ~/.local/share/chezmoi
-./setup git
+./setup git                     # installs chezmoi if missing, then applies
+./setup --no-packages git       # applies only (chezmoi must be installed)
 ```
+
+Existing identity and local files are kept as they are on every apply.
 
 ## Commit identity versus SSH authentication
 
 Two separate mechanisms are involved:
 
-- **Commit identity** (`user.name`, `user.email`) is chosen by the repository's
-  location: repositories under `~/Developer/personal/` include
-  `~/.gitconfig-personal`, those under `~/Developer/college/` include
-  `~/.gitconfig-college`, and everything else uses the noreply identity.
+- **Commit identity** (`user.name`, `user.email`) comes from untracked files,
+  read in this order (later wins):
+  1. `~/.config/git/identity.gitconfig`: the default for every repository;
+  2. `~/.gitconfig-personal` for repositories under `~/Developer/personal/`, or
+     `~/.gitconfig-college` under `~/Developer/college/`;
+  3. `~/.config/git/local.gitconfig`: per-machine overrides.
+
+  A missing file is skipped. With no identity at all, `git commit` stops with
+  "Author identity unknown" instead of inventing one.
 - **SSH authentication** decides which GitHub account a push or clone uses. It
   is chosen by the remote's host alias in `~/.ssh/config`.
 
 ### Identity files (manual)
 
-Create both files by hand; they hold only a `[user]` section and are never
-committed:
+Set the default identity, for example a GitHub noreply address:
+
+```sh
+git config --file ~/.config/git/identity.gitconfig user.name "NAME"
+git config --file ~/.config/git/identity.gitconfig user.email "EMAIL"
+```
+
+Create the per-account files by hand; they hold only a `[user]` section and
+are never committed:
 
 ```sh
 git config --file ~/.gitconfig-personal user.name "PERSONAL_NAME"
@@ -142,8 +162,11 @@ Tokens, keys and the identity files never enter this repository.
 
 ## Troubleshooting
 
-- `git config user.email` shows the noreply address in a college repository:
+- `git config user.email` shows the default identity in a college repository:
   check that the repository is under `~/Developer/college/` and that
-  `~/.gitconfig-college` exists.
+  `~/.gitconfig-college` exists. An email set in `local.gitconfig` overrides
+  every identity file.
+- `Author identity unknown`: no identity file applies to this repository; set
+  one as shown above.
 - `Permission denied (publickey)`: the remote uses the wrong alias or the key
   is not registered on that account; compare with `ssh -T github-college`.

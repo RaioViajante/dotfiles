@@ -109,7 +109,7 @@ module_notes() {
     ai) echo "Sign in to each AI app and CLI interactively; install the Kimi desktop app by hand (docs/ai.md)." ;;
     content) echo "Open each app once to finish its first-run setup (docs/content-creation.md)." ;;
     shell) echo "Open a new terminal to load the shell configuration (docs/shell-and-terminal.md)." ;;
-    git) echo "Create ~/.gitconfig-personal and ~/.gitconfig-college and the SSH keys (docs/git.md)." ;;
+    git) echo "Set your identity in ~/.config/git/identity.gitconfig and the per-account files; SSH keys and sign-in are separate steps (docs/git.md)." ;;
     vscode) echo "Restart VS Code to load the settings (docs/vscode.md)." ;;
     nvim) echo "Start nvim once to install plugins, parsers and language servers (docs/neovim.md)." ;;
   esac

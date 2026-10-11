@@ -1,0 +1,4 @@
+# Default Git identity for repositories outside the per-account directories.
+# Created once by chezmoi, never overwritten or committed. Set it with:
+#   git config --file ~/.config/git/identity.gitconfig user.name "NAME"
+#   git config --file ~/.config/git/identity.gitconfig user.email "EMAIL"

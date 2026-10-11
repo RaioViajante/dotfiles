@@ -21,9 +21,9 @@ sh -c "$(curl -fsLS get.chezmoi.io)" -- init RaioViajante
 `init` only clones the repository. The `setup` command installs and applies
 explicitly selected modules (for example `setup dev`, `setup shell git` or
 `setup all`); see [docs/setup.md](docs/setup.md). `chezmoi apply` applies the
-dotfiles only and never installs packages. `dot_gitconfig` supplies a public
-GitHub noreply identity; optional per-machine overrides live in the untracked
-`~/.config/git/local.gitconfig`.
+dotfiles only and never installs packages. No Git identity is versioned: Git
+reads it from untracked files ([docs/git.md](docs/git.md)), and per-machine
+overrides live in the untracked `~/.config/git/local.gitconfig`.
 
 Register the Homebrew JDKs once so `java_home`, VS Code and IntelliJ can find
 them (requires an administrator password):
@@ -48,9 +48,9 @@ brew bundle check --file="$(chezmoi source-path)/Brewfile"
 - `dot_zprofile`, `dot_zshrc` and `dot_config/zsh/` set Homebrew paths, shell
   options, completion, aliases and helpers. `tools.zsh` integrates Starship,
   zoxide and other installed tools; `completion.zsh` loads fzf bindings.
-- `dot_gitconfig` sets Git behavior, a GitHub noreply identity and
-  per-account identities; GitHub authentication uses one SSH key per account
-  ([docs/git.md](docs/git.md)).
+- `dot_gitconfig` sets Git behavior and includes the untracked default and
+  per-account identity files; GitHub authentication uses one SSH key per
+  account ([docs/git.md](docs/git.md)).
 - `dot_config/nvim/` contains the modular Neovim configuration and pinned
   plugin lockfile. VS Code user settings and the extension manifest cover the
   GUI editor. VS Code remains the primary editor; Neovim is the terminal editor
@@ -143,7 +143,7 @@ profile. VS Code settings live in
 
 `.gitignore` excludes local SSH keys, credential files and per-machine Git
 overrides. Shell history and application data are outside the managed source.
-The versioned Git identity is a public GitHub noreply address. Before
+No Git identity is versioned; identities live in untracked files. Before
 committing, run:
 
 ```sh
