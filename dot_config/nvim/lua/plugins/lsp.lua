@@ -20,7 +20,7 @@ return {
       "saghen/blink.cmp",
     },
     config = function()
-      require("mason").setup({ ui = { border = "rounded" } })
+      -- mason.nvim is already set up from its own spec (a dependency above).
 
       -- Mason package names. Servers cover TypeScript / JavaScript / Angular,
       -- HTML / CSS / Tailwind / JSON, ESLint, PHP, Python, Java, Lua, Bash,

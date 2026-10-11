@@ -13,6 +13,17 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
     }, true, {})
     os.exit(1)
   end
+  -- Start from the commit pinned in lazy-lock.json. Otherwise the first
+  -- install records the stable branch's commit in the lockfile and a restore
+  -- keeps it.
+  local lockfile = vim.fn.stdpath("config") .. "/lazy-lock.json"
+  local ok, lock = pcall(function()
+    return vim.json.decode(table.concat(vim.fn.readfile(lockfile), "\n"))
+  end)
+  local pinned = ok and lock["lazy.nvim"] and lock["lazy.nvim"].commit
+  if pinned then
+    vim.fn.system({ "git", "-C", lazypath, "checkout", "--quiet", pinned })
+  end
 end
 vim.opt.rtp:prepend(lazypath)
 
