@@ -73,12 +73,20 @@ module_targets() {
   esac
 }
 
-# Steps that run after a module's packages are installed.
+# Steps that run after a module's packages are installed (skipped with
+# --no-packages).
 module_steps() {
   case "$1" in
     dev) echo "scripts/macos/setup-rust.sh" ;;
     ai) echo "scripts/macos/install-ai-clis.sh" ;;
     vscode) echo "scripts/macos/install-vscode-extensions.sh" ;;
+  esac
+}
+
+# Steps that run after a module's configuration is applied.
+module_config_steps() {
+  case "$1" in
+    shell) echo "scripts/macos/set-iterm-default-profile.sh" ;;
   esac
 }
 
@@ -111,7 +119,7 @@ list_modules() {
     while IFS= read -r target; do
       [[ -n "$target" ]] && printf '  managed file:   ~/%s\n' "$target"
     done < <(module_targets "$module")
-    for step in $(module_steps "$module"); do
+    for step in $(module_steps "$module") $(module_config_steps "$module"); do
       printf '  step:           %s\n' "$step"
     done
   done
@@ -257,6 +265,12 @@ if [[ -n "$config_modules" ]]; then
     log "applying configuration: $config_modules"
     if run chezmoi apply --source "$REPO" --parent-dirs "${targets[@]}"; then
       ok "configuration applied: $config_modules"
+      for module in $config_modules; do
+        for step in $(module_config_steps "$module"); do
+          log "$module: $step"
+          run "$REPO/$step" || fail "$module: $step failed"
+        done
+      done
     else
       fail "chezmoi apply failed for: $config_modules"
     fi
