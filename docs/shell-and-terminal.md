@@ -24,6 +24,7 @@ zsh, Starship and iTerm2 configuration.
 ```sh
 cd ~/.local/share/chezmoi
 ./setup shell                   # packages, files and the default profile
+./setup --packages-only shell   # tools, iTerm2 and font; shell files untouched
 ./setup --no-packages shell     # files and the default profile only
 ```
 
@@ -38,6 +39,12 @@ Codex), `~/.kimi-code/bin`, Docker Desktop's `~/.docker/bin`, the VS Code
 and `~/.cargo/bin`, and the Homebrew JDK (Java 25 by default). Each entry is
 guarded, so missing tools are skipped. Tool installers are kept from adding
 their own PATH lines (see [AI tools](ai.md)).
+
+The other modules do not need this module. If you keep your own shell
+configuration, add the entries listed in
+[Using modules with your own shell](setup.md#using-modules-with-your-own-shell)
+and skip `./setup shell` (or install only its tools with
+`./setup --packages-only shell`).
 
 ## iTerm2 default profile
 

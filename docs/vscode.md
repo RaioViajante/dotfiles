@@ -31,7 +31,8 @@ settings and installs the extensions listed in
 
 ```sh
 cd ~/.local/share/chezmoi
-./setup vscode                  # app, settings and extensions
+./setup vscode                  # app, extensions and settings
+./setup --packages-only vscode  # app, extensions and font; settings untouched
 ./setup --no-packages vscode    # settings only
 ```
 

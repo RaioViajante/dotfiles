@@ -26,14 +26,22 @@ cd ~/.local/share/chezmoi
 ./setup dev
 ```
 
-This installs the packages and runs `scripts/macos/setup-rust.sh`. The shell
-PATH entries for these tools (keg-only Node and rustup, the JDKs) come from the
-[shell module](shell-and-terminal.md).
+This installs the packages and runs `scripts/macos/setup-rust.sh`; `dev` is
+software only, so `./setup --packages-only dev` does the same. It works without
+the managed shell. The PATH entries for these tools (keg-only Node and rustup,
+`~/.cargo/bin`, the JDK) come from the [shell module](shell-and-terminal.md) or
+from your own shell ([entries to add](setup.md#using-modules-with-your-own-shell)).
 
 ## Rust
 
-Rust comes from Homebrew's `rustup` formula (keg-only; the rustup book lists
-`brew install rustup` as a supported method). `setup-rust.sh`:
+Rust comes from Homebrew's `rustup` formula; the rustup book lists
+`brew install rustup` as a supported method. The formula is keg-only:
+`rustup` and its proxies (`cargo`, `rustc`, `rustfmt`, `cargo-clippy`,
+`rust-analyzer`, ...) are wrapper scripts in `$(brew --prefix rustup)/bin`,
+which is not on PATH by default. Homebrew builds rustup without self-update
+(update it with `brew upgrade rustup`) and ships fallback settings that make
+`stable` the default toolchain until you choose another. `setup-rust.sh`
+finds that directory from the Homebrew prefix itself and:
 
 - installs the `stable` toolchain with the minimal profile plus `rustfmt`,
   `clippy` and `rust-analyzer`;
@@ -74,7 +82,8 @@ scripts/macos/register-jdks.sh
 - Homebrew Python is the default interpreter; `uv` manages per-project
   environments and Python versions (`.python-version`, `pyproject.toml`).
   pyenv is intentionally not part of the setup.
-- Node 24 is keg-only and put on PATH by the shell module; `pnpm` comes from
+- Node 24 is keg-only and put on PATH by the shell module (or your own shell);
+  `pnpm` comes from
   Homebrew.
 
 ## MySQL
@@ -110,7 +119,7 @@ makes the Rust step fail with a clear message; remove that step from
 
 ## Troubleshooting
 
-- `rustup not found`: rerun `./setup dev`, or check that
-  `/opt/homebrew/opt/rustup/bin` is on PATH (open a new terminal).
+- `rustup not found`: rerun `./setup dev`. In your own shell, add
+  `$(brew --prefix rustup)/bin` to PATH.
 - A project reports a missing toolchain: run `rustup toolchain install` in the
   project directory.

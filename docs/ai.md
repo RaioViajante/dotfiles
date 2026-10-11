@@ -31,13 +31,19 @@ This installs the bundle, then runs `scripts/macos/install-ai-clis.sh`, which:
 
 - skips any CLI whose command is already available, from any install method;
 - downloads each official installer to a temporary file before running it;
-- keeps the installers from editing shell startup files: the managed zsh
-  config already puts `~/.local/bin` and `~/.kimi-code/bin` on PATH, and any
-  edit to `~/.zshrc`, `~/.zprofile` (or the bash files) is reverted;
+- keeps the installers from editing shell startup files: it puts
+  `~/.local/bin` and `~/.kimi-code/bin` on PATH for its own run, and reverts
+  any edit to `~/.zshrc`, `~/.zprofile`, `~/.zshenv` or the bash files;
 - reports installed, skipped and failed CLIs and exits non-zero on any failure.
 
 Rerun `scripts/macos/install-ai-clis.sh` (or `./setup ai`) to retry a failed
-CLI; installed ones are skipped.
+CLI; installed ones are skipped. `ai` is software only, so
+`./setup --packages-only ai` is equivalent.
+
+The CLIs live in `~/.local/bin` (Claude Code, Codex) and `~/.kimi-code/bin`
+(Kimi Code). The [shell module](shell-and-terminal.md) puts both on PATH; with
+your own shell, add them yourself
+([entries](setup.md#using-modules-with-your-own-shell)).
 
 ## Manual steps
 
@@ -72,5 +78,6 @@ agent. This repository installs no MCP servers and stores no MCP configuration.
 
 - `failed: Kimi Code` with a curl error: a network problem reaching
   `code.kimi.com`; rerun `scripts/macos/install-ai-clis.sh`.
-- `installer edited ~/.zshrc; restored it`: expected and harmless; PATH is
-  managed by `dot_config/zsh/paths.zsh`.
+- `installer edited ~/.zshrc; restored it`: expected and harmless; setup never
+  edits shell files, so add the PATH entries above yourself if you do not use
+  the shell module.

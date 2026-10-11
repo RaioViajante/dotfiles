@@ -23,6 +23,7 @@ applies the modular Lua configuration in `~/.config/nvim`.
 ```sh
 cd ~/.local/share/chezmoi
 ./setup nvim                    # packages and configuration
+./setup --packages-only nvim    # Neovim and its dependencies; config untouched
 ./setup --no-packages nvim      # configuration only
 ```
 
@@ -30,6 +31,13 @@ Then start `nvim` once. On a fresh install it clones lazy.nvim at the commit in
 `lazy-lock.json`, installs the plugins at their locked commits, builds the
 tree-sitter parsers and lets Mason install the language servers and
 formatters. Restart Neovim once those finish so every server attaches.
+
+Neovim does not depend on the managed shell. When it is started from Finder or
+from another shell, `lua/config/options.lua` appends keg-only `node@24`
+(Mason's npm installs, prettierd) and rustup's proxy directory (rust-analyzer)
+under `$HOMEBREW_PREFIX` (default `/opt/homebrew`) to its own PATH, and sets
+`JAVA_HOME` to Homebrew's JDK 25 for jdtls when it is unset. Tools already on
+PATH keep priority.
 
 ## Languages
 
