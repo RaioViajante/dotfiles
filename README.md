@@ -140,9 +140,8 @@ once. VS Code settings live in
   an Apple ID sign-in, then
   `"$(chezmoi source-path)/scripts/macos/install-mas-apps.sh"`.
 - `scripts/macos/setup-claude-config.sh` merges the configured Claude Code
-  settings. `scripts/macos/setup-proton-mcp.sh` registers the separately managed
-  Proton Mail MCP server when its prerequisites are present. Neither stores
-  credentials in this repository.
+  settings without storing credentials in this repository. MCP servers are
+  installed and registered from their own repositories.
 - Docker Desktop and the desktop apps in `Brewfile` still require their own
   first launch and sign-in. The macOS wallpaper and peripheral software are not
   managed here.

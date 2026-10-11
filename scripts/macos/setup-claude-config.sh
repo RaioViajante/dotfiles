@@ -6,8 +6,8 @@
 # (~/.claude.json), per-project trust or the autoMode notes.
 #
 # Codex (~/.codex/config.toml) is intentionally not edited: its model and
-# per-project trust are chosen interactively, and the proton-mail MCP entry is
-# handled by setup-proton-mcp.sh. MANUAL step, idempotent, no sudo.
+# per-project trust are chosen interactively. MCP servers are registered by
+# their own repositories, never here. MANUAL step, idempotent, no sudo.
 set -euo pipefail
 
 if [[ "$(uname -s)" != Darwin ]]; then
