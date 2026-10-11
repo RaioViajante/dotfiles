@@ -1,6 +1,7 @@
 #!/bin/bash
 # Check README.md and docs/*.md against the repository:
-#   - relative Markdown links point to existing files,
+#   - relative links, Markdown or HTML (href/src), point to existing files and
+#     their #anchors to existing headings (GitHub heading slugs),
 #   - every scripts/... path mentioned exists,
 #   - every documented `./setup ARGS` invocation is accepted (run as a dry run
 #     with a throwaway HOME, so nothing is installed or applied). The bare
@@ -14,16 +15,29 @@ cd "$root"
 status=0
 docs=(README.md docs/*.md)
 
+# GitHub's heading anchors: lowercase, punctuation dropped, spaces to hyphens.
+slugs() {
+  grep -E '^#{1,6} ' "$1" | sed -E 's/^#+ +//' | tr '[:upper:]' '[:lower:]' |
+    sed -E 's/[^a-z0-9 _-]//g; s/ /-/g'
+}
+
 for doc in "${docs[@]}"; do
   dir="$(dirname "$doc")"
   while IFS= read -r link; do
     target="${link%%#*}"
-    [[ -z "$target" ]] && continue
-    if [[ ! -e "$dir/$target" ]]; then
+    anchor=""
+    [[ "$link" == *"#"* ]] && anchor="${link#*#}"
+    file="$dir/${target:-$(basename "$doc")}"
+    if [[ ! -e "$file" ]]; then
       echo "$doc: broken link: $link" >&2
       status=1
+    elif [[ -n "$anchor" && "$file" == *.md ]] && ! slugs "$file" | grep -qxF -e "$anchor"; then
+      echo "$doc: missing anchor: $link" >&2
+      status=1
     fi
-  done < <(grep -oE '\]\([^)]+\)' "$doc" | sed -E 's/^\]\((.*)\)$/\1/' | grep -vE '^(https?|mailto|macappstore):' || true)
+  done < <({ grep -oE '\]\([^)]+\)' "$doc" | sed -E 's/^\]\((.*)\)$/\1/'
+    grep -oE '(href|src)="[^"]+"' "$doc" | sed -E 's/^(href|src)="(.*)"$/\2/'
+  } | grep -vE '^(https?|mailto|macappstore):' || true)
 done
 
 while IFS= read -r path; do
