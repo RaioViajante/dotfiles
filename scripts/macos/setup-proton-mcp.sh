@@ -1,8 +1,9 @@
 #!/bin/bash
-# Register the local Proton Mail MCP server (~/Developer/proton-mail-mcp,
-# managed in its own repo, not here) with Claude Code and Codex at
-# user/global scope, so `proton-mail` is available from any working
-# directory instead of only inside that repo.
+# Register the local Proton Mail MCP server (managed in its own repo, not
+# here) with Claude Code and Codex at user/global scope, so `proton-mail` is
+# available from any working directory instead of only inside that repo. The
+# repo is expected at ~/Developer/personal/projects/proton-mail-mcp; set
+# PROTON_MAIL_MCP_DIR to use another location.
 #
 # Idempotent and safe to re-run. Never stores or prints secrets: no Bridge
 # password, Keychain value, signing key or token is read, generated or
@@ -16,7 +17,7 @@ if [[ "$(uname -s)" != Darwin ]]; then
   exit 1
 fi
 
-repo="$HOME/Developer/proton-mail-mcp"
+repo="${PROTON_MAIL_MCP_DIR:-$HOME/Developer/personal/projects/proton-mail-mcp}"
 entrypoint="$repo/dist/index.js"
 node_bin="/opt/homebrew/opt/node@24/bin/node"
 

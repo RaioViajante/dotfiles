@@ -118,8 +118,8 @@ cask "proton-drive"
 cask "protonvpn"
 
 # Background IMAP/SMTP bridge for the Proton account, used by the local
-# proton-mail-mcp server (~/Developer/proton-mail-mcp) — not a user-facing
-# app. Deliberately left out of scripts/macos/apply-preferences.sh's
+# proton-mail-mcp server (see scripts/macos/setup-proton-mcp.sh) — not a
+# user-facing app. Deliberately left out of scripts/macos/apply-preferences.sh's
 # dock_apps list, so it never joins the Proton apps in the Dock. Account
 # sign-in stays manual, same as the rest of the Proton ecosystem above.
 cask "proton-mail-bridge"

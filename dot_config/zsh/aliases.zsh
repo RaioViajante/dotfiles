@@ -29,7 +29,6 @@ alias pt='pnpm test'
 alias d='docker'
 alias dc='docker compose'
 alias dps='docker ps'
-alias pods='podman ps'
 
 # Useful inspection commands.
 alias ports='lsof -nP -iTCP -sTCP:LISTEN'

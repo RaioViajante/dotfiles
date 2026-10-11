@@ -3,6 +3,9 @@ typeset -U path PATH
 # User-local executables.
 [[ -d "$HOME/.local/bin" ]] && path=("$HOME/.local/bin" $path)
 
+# Kimi Code CLI, installed by its official installer into ~/.kimi-code/bin.
+[[ -d "$HOME/.kimi-code/bin" ]] && path=("$HOME/.kimi-code/bin" $path)
+
 # Docker Desktop CLI helpers and Compose plugins.
 [[ -d "$HOME/.docker/bin" ]] && path=("$HOME/.docker/bin" $path)
 [[ -d "$HOME/.docker/completions" ]] && fpath=("$HOME/.docker/completions" $fpath)
@@ -10,9 +13,6 @@ typeset -U path PATH
 # Visual Studio Code CLI shipped inside the macOS application bundle.
 [[ -d "/Applications/Visual Studio Code.app/Contents/Resources/app/bin" ]] && \
   path=("/Applications/Visual Studio Code.app/Contents/Resources/app/bin" $path)
-
-# MySQL Community Server installed from the native macOS package.
-[[ -d "/usr/local/mysql/bin" ]] && path=("/usr/local/mysql/bin" $path)
 
 # Homebrew MySQL client and server commands.
 [[ -d "/opt/homebrew/opt/mysql/bin" ]] && path=("/opt/homebrew/opt/mysql/bin" $path)
