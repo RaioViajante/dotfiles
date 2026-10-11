@@ -275,17 +275,15 @@ fi
 
 # --- Packages ---------------------------------------------------------------
 if [[ -n "$bundles" ]]; then
-  if ! has brew && [[ -x /opt/homebrew/bin/brew ]]; then
-    PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
-  fi
-  if ! has brew; then
+  # Homebrew goes on PATH for this process only; shell files are not edited.
+  if ! has brew && ! use_homebrew; then
     log "installing Homebrew (official installer)"
     if (( dry_run )); then
       printf '  would run: the Homebrew installer from https://brew.sh\n' >&2
     else
       /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" ||
         die "Homebrew installation failed"
-      PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+      use_homebrew || die "Homebrew installed but brew was not found under $(homebrew_prefix)"
     fi
   fi
 
@@ -316,9 +314,7 @@ done
 
 # --- Configuration -----------------------------------------------------------
 if [[ -n "$config_modules" ]]; then
-  if ! has chezmoi && [[ -x /opt/homebrew/bin/chezmoi ]]; then
-    PATH="/opt/homebrew/bin:$PATH"
-  fi
+  has chezmoi || use_homebrew || true
   if ! has chezmoi && (( ! dry_run )); then
     fail "chezmoi not found; install it (brew install chezmoi) and rerun to apply: $config_modules"
   else

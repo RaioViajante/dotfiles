@@ -18,9 +18,10 @@ source "$SCRIPT_DIR/../lib.sh"
 refuse_root
 has curl || die "curl is required"
 
-# The managed zsh config already puts these directories on PATH. Adding them
-# here too keeps the installers from appending their own PATH lines to shell
-# startup files; any edit that still happens is reverted below.
+# Put the CLI directories on PATH for this process (the managed zsh config, or
+# the user's own shell, adds them permanently; see docs/ai.md). This keeps the
+# installers from appending PATH lines to shell startup files; any edit that
+# still happens is reverted below.
 export PATH="$HOME/.local/bin:$HOME/.kimi-code/bin:$PATH"
 export KIMI_NO_MODIFY_PATH=1
 
@@ -49,11 +50,11 @@ restore_shell_files() {
     if [[ -e "$tmp_dir/shell/$file.absent" ]]; then
       if [[ -e "$HOME/$file" ]]; then
         rm -f "$HOME/$file"
-        warn "$name installer created ~/$file; removed it (PATH is managed by dot_config/zsh)"
+        warn "$name installer created ~/$file; removed it; setup never edits shell files (PATH: docs/ai.md)"
       fi
     elif ! cmp -s "$tmp_dir/shell/$file" "$HOME/$file"; then
       cp -p "$tmp_dir/shell/$file" "$HOME/$file"
-      warn "$name installer edited ~/$file; restored it (PATH is managed by dot_config/zsh)"
+      warn "$name installer edited ~/$file; restored it; setup never edits shell files (PATH: docs/ai.md)"
     fi
   done
 }

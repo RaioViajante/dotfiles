@@ -11,6 +11,10 @@ if [[ "$(uname -s)" != Darwin ]]; then
   echo "This script supports macOS only." >&2
   exit 1
 fi
+# Homebrew's bin may not be on PATH when the managed shell is not in use.
+if ! command -v mas >/dev/null 2>&1 && [[ -x /opt/homebrew/bin/brew ]]; then
+  eval "$(/opt/homebrew/bin/brew shellenv bash)"
+fi
 if ! command -v mas >/dev/null 2>&1; then
   echo "mas is not installed; run 'setup dev' (brew/dev.Brewfile) first." >&2
   exit 1

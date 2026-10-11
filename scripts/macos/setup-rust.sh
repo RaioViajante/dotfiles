@@ -16,8 +16,10 @@ source "$SCRIPT_DIR/../lib.sh"
 [[ "$(uname -s)" == Darwin ]] || die "this script targets macOS"
 refuse_root
 
-# Homebrew's rustup is keg-only; its bin directory holds rustup and the proxies.
-rustup_bin="${HOMEBREW_PREFIX:-/opt/homebrew}/opt/rustup/bin"
+# Homebrew's rustup is keg-only: rustup and its proxies (cargo, rustc,
+# rust-analyzer, ...) live in $(brew --prefix rustup)/bin, which is not on PATH
+# by default. Use it for this process when present, without editing shell files.
+rustup_bin="$(homebrew_prefix)/opt/rustup/bin"
 [[ -x "$rustup_bin/rustup" ]] && PATH="$rustup_bin:$PATH"
 has rustup || die "rustup not found; install it with 'setup dev' (brew/dev.Brewfile)"
 

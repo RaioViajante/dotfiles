@@ -23,7 +23,13 @@ if [[ "${EUID:-$(id -u)}" -eq 0 ]]; then
   exit 1
 fi
 
-brew_prefix="${HOMEBREW_PREFIX:-/opt/homebrew}"
+if [[ -n "${HOMEBREW_PREFIX:-}" ]]; then
+  brew_prefix="$HOMEBREW_PREFIX"
+elif command -v brew >/dev/null 2>&1; then
+  brew_prefix="$(brew --prefix)"
+else
+  brew_prefix=/opt/homebrew
+fi
 jvm_dir="/Library/Java/JavaVirtualMachines"
 
 # Homebrew JDK formulae to register, newest first. The newest one becomes the
