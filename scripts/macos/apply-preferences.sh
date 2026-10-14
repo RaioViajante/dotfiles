@@ -85,7 +85,7 @@ dock_apps=(
   "/Applications/Spotify.app"
   "/Applications/Proton Mail.app"
   "/Applications/Proton Pass.app"
-  "/Applications/Proton Authenticator.app"
+  "/Applications/Authenticator.app"
   "/Applications/Proton Drive.app"
   "/Applications/ProtonVPN.app"
   "/Applications/Tor Browser.app"
@@ -94,8 +94,9 @@ dock_apps=(
 
 # Most apps use the standard Contents/Info.plist layout. "Designed for iPad"
 # / Mac Catalyst apps installed from the Mac App Store (e.g. Proton
-# Authenticator) instead ship an outer wrapper whose real Info.plist lives at
-# Wrapper/<Name>.app/Info.plist, with no top-level Contents directory.
+# Authenticator, installed as Authenticator.app) instead ship an outer wrapper
+# whose real Info.plist lives at Wrapper/<Name>.app/Info.plist, with no
+# top-level Contents directory.
 bundle_id() {
   local app="$1"
   local plist="$app/Contents/Info.plist"
