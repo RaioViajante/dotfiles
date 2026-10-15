@@ -1,7 +1,7 @@
 # Content creation
 
-The `content` module installs recording, 3D, painting and audio tools from
-`brew/content.Brewfile`.
+The `content` module installs recording, 3D, painting, game development and
+audio tools from `brew/content.Brewfile`.
 
 ## Included
 
@@ -10,6 +10,7 @@ The `content` module installs recording, 3D, painting and audio tools from
 | OBS Studio | `cask "obs"` | Apple Silicon build; updates itself |
 | Blender | `cask "blender"` | Apple Silicon build |
 | Krita | `cask "krita"` | official signed macOS build |
+| Godot | `cask "godot"` | game engine (GDScript); imports `.blend` files through Blender |
 | Audacity | `cask "audacity"` | installs as `Audacity 4.app` |
 | FFmpeg | `brew "ffmpeg"` | command-line audio and video conversion |
 
