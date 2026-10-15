@@ -4,6 +4,9 @@
 # MANUAL step: the App Store must already be signed in with your own Apple ID
 # (interactive; no credentials are ever stored here). Uses `mas install`, which
 # only downloads apps already in your purchase history -- it never purchases.
+# `mas install` asks for an administrator password in the terminal. After Xcode
+# installs, accept its license (`sudo xcodebuild -license accept`) or git and
+# clang stop working (docs/development.md).
 # Idempotent: apps that are already installed are skipped.
 set -euo pipefail
 
@@ -29,6 +32,6 @@ while read -r id name; do
     echo "ok:  $name already installed" >&2
   else
     echo "set: installing $name ($id)" >&2
-    mas install "$id" || echo "warn: could not install $name; sign in to the App Store and retry" >&2
+    mas install "$id" || echo "warn: could not install $name; check the App Store sign-in and the administrator password, then retry" >&2
   fi
 done < "$manifest"
