@@ -10,8 +10,10 @@ the Command Line Tools and the GitHub CLI (`gh`) from the
 ## Included
 
 - `~/.gitconfig`: defaults (main branch, fast-forward pulls, histogram diffs,
-  zdiff3 conflicts, aliases), `user.useConfigOnly = true` (Git refuses to
-  commit rather than guess an identity) and the identity includes below.
+  zdiff3 conflicts, aliases), the Git LFS filter (`git-lfs` comes from the
+  dev module; do not run `git lfs install`, which would edit this file),
+  `user.useConfigOnly = true` (Git refuses to commit rather than guess an
+  identity) and the identity includes below.
 - `~/.config/git/ignore`: global ignores (`.DS_Store`, `.env` files, local
   Claude settings).
 - `~/.config/git/identity.gitconfig`: your default identity. Created once

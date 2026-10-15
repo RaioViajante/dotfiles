@@ -17,6 +17,14 @@
 	autoSetupRemote = true
 [core]
 	excludesFile = ~/.config/git/ignore
+# Git LFS (brew/dev.Brewfile), as `git lfs install` would write it. Kept here
+# because that command edits ~/.gitconfig, which chezmoi manages. Repositories
+# without LFS attributes are unaffected.
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
 [color]
 	ui = auto
 [diff]

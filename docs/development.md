@@ -9,7 +9,7 @@ modules: [VS Code](vscode.md) and [Neovim](neovim.md).
 
 | Area | Packages |
 | --- | --- |
-| GitHub and checks | `gh`, `gitleaks`, `shellcheck`, `htop`, `nmap` |
+| GitHub and checks | `gh`, `git-lfs`, `gitleaks`, `shellcheck`, `htop`, `nmap` |
 | JavaScript / TypeScript | `node@24` (shared), `pnpm`, `angular-cli`, `vercel` |
 | Java / Spring Boot | `openjdk@21`, `openjdk@25`, `maven` |
 | Python | `python@3.14`, `uv` |
