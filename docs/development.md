@@ -79,7 +79,8 @@ scripts/macos/register-jdks.sh
 
 ## Python, Node and PHP
 
-- Homebrew Python is the default interpreter; `uv` manages per-project
+- Homebrew Python 3.14 is the default interpreter: the shell module puts its
+  unversioned `python3` and `pip3` on PATH; `uv` manages per-project
   environments and Python versions (`.python-version`, `pyproject.toml`).
   pyenv is intentionally not part of the setup.
 - Node 24 is keg-only and put on PATH by the shell module (or your own shell);
@@ -109,6 +110,10 @@ ones. The Command Line Tools are enough for everything else in this repository.
 - GitHub CLI and SSH keys: see [Git and GitHub accounts](git.md).
 - Docker Desktop, IntelliJ IDEA and Postman ask for their own sign-in or
   license on first launch. Docker Desktop also installs a privileged helper.
+- In Docker Desktop, set Settings > Advanced > CLI tools installation to
+  **System**. With **User**, it appends PATH and completion lines to
+  `~/.zprofile` and `~/.zshrc`, which chezmoi manages and the shell module
+  already covers (`~/.docker/bin`, `~/.docker/completions`).
 
 ## Customize or omit
 
