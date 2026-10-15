@@ -21,6 +21,12 @@ typeset -U path PATH
 # managed PATH rather than per-machine symlinks in ~/.local/bin.
 [[ -d "/opt/homebrew/opt/node@24/bin" ]] && path=("/opt/homebrew/opt/node@24/bin" $path)
 
+# Homebrew's versioned Python only links python3.14 into bin; its unversioned
+# python3/pip3 live in libexec/bin. Put them first so python3 is not the
+# Command Line Tools interpreter.
+[[ -d "/opt/homebrew/opt/python@3.14/libexec/bin" ]] && \
+  path=("/opt/homebrew/opt/python@3.14/libexec/bin" $path)
+
 # Rust: Homebrew's keg-only rustup and its proxies (cargo, rustc,
 # rust-analyzer, ...), which honour rust-toolchain.toml files, then binaries
 # installed with `cargo install`.

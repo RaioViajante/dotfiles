@@ -79,7 +79,8 @@ scripts/macos/register-jdks.sh
 
 ## Python, Node and PHP
 
-- Homebrew Python is the default interpreter; `uv` manages per-project
+- Homebrew Python 3.14 is the default interpreter: the shell module puts its
+  unversioned `python3` and `pip3` on PATH; `uv` manages per-project
   environments and Python versions (`.python-version`, `pyproject.toml`).
   pyenv is intentionally not part of the setup.
 - Node 24 is keg-only and put on PATH by the shell module (or your own shell);
