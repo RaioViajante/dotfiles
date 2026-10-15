@@ -103,7 +103,15 @@ scripts/macos/install-mas-apps.sh
 ```
 
 The script only downloads apps from your purchase history and skips installed
-ones. The Command Line Tools are enough for everything else in this repository.
+ones. `mas install` asks for an administrator password in the terminal. The
+Command Line Tools are enough for everything else in this repository.
+
+Once Xcode is installed it becomes the active developer directory, and `git`,
+`clang` and `make` refuse to run until its license is accepted:
+
+```sh
+sudo xcodebuild -license accept
+```
 
 ## Authentication
 
