@@ -5,6 +5,7 @@
 # GitHub, diagnostics and repository checks (ShellCheck and gitleaks also run
 # in CI).
 brew "gh"
+brew "git-lfs"
 brew "htop"
 brew "nmap"
 brew "shellcheck"
