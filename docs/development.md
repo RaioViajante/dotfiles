@@ -110,6 +110,10 @@ ones. The Command Line Tools are enough for everything else in this repository.
 - GitHub CLI and SSH keys: see [Git and GitHub accounts](git.md).
 - Docker Desktop, IntelliJ IDEA and Postman ask for their own sign-in or
   license on first launch. Docker Desktop also installs a privileged helper.
+- In Docker Desktop, set Settings > Advanced > CLI tools installation to
+  **System**. With **User**, it appends PATH and completion lines to
+  `~/.zprofile` and `~/.zshrc`, which chezmoi manages and the shell module
+  already covers (`~/.docker/bin`, `~/.docker/completions`).
 
 ## Customize or omit
 
