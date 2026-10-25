@@ -20,7 +20,7 @@ Install modules (packages only):
   apps      Desktop apps: productivity, communication, browsers, Proton
   dev       Development tools: runtimes, databases, CLIs, developer apps, Rust
   ai        AI apps, OpenCode, and the Claude Code, Codex and Kimi Code CLIs
-  content   Content creation: OBS, Blender, Krita, Audacity, FFmpeg
+  content   Content creation: OBS, Blender, Descript, CapCut, FFmpeg
 
 Configuration modules (their software, then the managed dotfiles):
   shell     zsh, Starship, CLI tools, iTerm2 profile (made the default)
