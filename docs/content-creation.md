@@ -1,7 +1,7 @@
 # Content creation
 
 The `content` module installs recording, 3D, painting, game development and
-audio tools from `brew/content.Brewfile`.
+audio/video tools from `brew/content.Brewfile`.
 
 ## Included
 
@@ -12,6 +12,8 @@ audio tools from `brew/content.Brewfile`.
 | Krita | `cask "krita"` | official signed macOS build |
 | Godot | `cask "godot"` | game engine (GDScript); imports `.blend` files through Blender |
 | Audacity | `cask "audacity"` | installs as `Audacity 4.app` |
+| Descript | `cask "descript"` | transcript-based audio and video editor; updates itself |
+| CapCut | `cask "capcut"` | video editor and image design app |
 | FFmpeg | `brew "ffmpeg"` | command-line audio and video conversion |
 
 ## Install
@@ -29,8 +31,8 @@ Skip a tool for one run with, for example,
 
 `./setup content` only installs the apps. On first launch, macOS asks OBS for
 camera, microphone and screen-recording permission; grant those in System
-Settings > Privacy & Security. Scenes, profiles, brushes, add-ons and media
-projects are user data and are not managed here.
+Settings > Privacy & Security. Scenes, profiles, brushes, add-ons, accounts and
+media projects are user data and are not managed here.
 
 Project-specific tools stay with their projects: for example Remotion and its
 agent skills belong in the video project's own dependencies, not in this
@@ -38,7 +40,8 @@ repository.
 
 ## Authentication
 
-None of these tools needs an account.
+Descript requires an account. CapCut can be used without signing in, but some
+features require an account. Authentication stays outside this repository.
 
 ## Limitations
 
