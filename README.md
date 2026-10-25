@@ -14,7 +14,7 @@ other four apply configuration and bring the software it needs.
 apps     desktop apps, Proton
 dev      runtimes, CLIs, Rust
 ai       AI apps and CLIs
-content  OBS, Blender, Krita, Audacity
+content  OBS, Blender, Descript, CapCut
 shell    zsh, Starship, iTerm2
 git      Git settings, identities
 vscode   VS Code and extensions
@@ -66,7 +66,7 @@ Mac has not been run end to end. the full guide is in
 <a href="docs/apps.md">apps.md</a> ··············· desktop apps
 <a href="docs/development.md">development.md</a> ········ runtimes, Rust
 <a href="docs/ai.md">ai.md</a> ················· AI apps, CLIs
-<a href="docs/content-creation.md">content-creation.md</a> ··· OBS, Blender
+<a href="docs/content-creation.md">content-creation.md</a> ··· OBS, Descript, CapCut
 <a href="docs/shell-and-terminal.md">shell-and-terminal.md</a> · zsh, iTerm2
 <a href="docs/git.md">git.md</a> ················ identity, SSH
 <a href="docs/vscode.md">vscode.md</a> ············· extensions
