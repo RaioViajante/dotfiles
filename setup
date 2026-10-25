@@ -89,6 +89,7 @@ module_steps() {
   case "$1" in
     dev) echo "scripts/macos/setup-rust.sh" ;;
     ai) echo "scripts/macos/install-ai-clis.sh" ;;
+    content) echo "scripts/macos/install-descript.sh" ;;
     vscode) echo "scripts/macos/install-vscode-extensions.sh" ;;
   esac
 }
