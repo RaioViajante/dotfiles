@@ -177,6 +177,7 @@ if [[ -z "${selected// /}" ]]; then
   usage
   exit 2
 fi
+
 # Keep the canonical module order and drop repeats.
 modules=""
 for module in $INSTALL_MODULES $CONFIG_MODULES; do
