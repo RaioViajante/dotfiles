@@ -49,6 +49,10 @@ name a module:
 # configuration only
 ./setup --no-packages shell git
 
+# a ready-made set of modules: core, development,
+# content-creation or full
+./setup --profile content-creation
+
 # preview everything, change nothing
 ./setup --dry-run all
 

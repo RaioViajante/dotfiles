@@ -31,6 +31,13 @@ Configuration modules (their software, then the managed dotfiles):
 
   all       Every module above
 
+Profiles (optional shortcuts that expand to the modules listed; combine them
+with modules and with the modes below):
+      --profile NAME   core              shell git
+                       development       shell git dev vscode nvim ai
+                       content-creation  shell git content studio
+                       full              every module, same as 'all'
+
 Modes (default: software and configuration):
       --packages-only  Software only: packages, Rust toolchain, AI CLIs and
                        VS Code extensions. Never writes managed files, Git
@@ -50,9 +57,24 @@ Examples:
   setup --no-packages shell git    Shell and Git configuration only
   setup apps ai content            Several install modules
   setup all                        Complete setup
+  setup --profile content-creation Content-creation workstation
+  setup --profile development --packages-only   Development software only
 
 Nothing is installed or applied without an explicit MODULE. See docs/setup.md.
 EOF
+}
+
+PROFILES="core development content-creation full"
+
+# Modules a profile expands to. A profile only selects modules: it adds no
+# package of its own and the modes behave exactly as with explicit modules.
+profile_modules() {
+  case "$1" in
+    core) echo "shell git" ;;
+    development) echo "shell git dev vscode nvim ai" ;;
+    content-creation) echo "shell git content studio" ;;
+    full) echo "$INSTALL_MODULES $CONFIG_MODULES" ;;
+  esac
 }
 
 # Software bundles a module installs, shared dependencies first.
@@ -143,6 +165,10 @@ list_modules() {
     done
   done
   printf 'applying configuration also installs: %s\n' "$CONFIG_BUNDLE"
+  printf 'profiles:\n'
+  for module in $PROFILES; do
+    printf '  %-17s %s\n' "$module" "$(profile_modules "$module")"
+  done
 }
 
 dry_run=0
@@ -150,11 +176,22 @@ packages_only=0
 config_only=0
 selected=""
 
+add_profile() {
+  contains "$PROFILES" "$1" || { usage >&2; die "unknown profile: $1 (choose from: $PROFILES)"; }
+  selected="$selected $(profile_modules "$1")"
+}
+
 while (( $# > 0 )); do
   case "$1" in
     -h | --help) usage; exit 0 ;;
     -l | --list) list_modules; exit 0 ;;
     -n | --dry-run) dry_run=1 ;;
+    --profile=*) add_profile "${1#--profile=}" ;;
+    --profile)
+      (( $# >= 2 )) || { usage >&2; die "--profile needs a name (choose from: $PROFILES)"; }
+      add_profile "$2"
+      shift
+      ;;
     --packages-only) packages_only=1 ;;
     --no-packages) config_only=1 ;;
     --print-targets)
@@ -162,6 +199,13 @@ while (( $# > 0 )); do
       # configuration module.
       for module in $CONFIG_MODULES; do
         module_targets "$module" | sed "s/^/$module$(printf '\t')/"
+      done
+      exit 0
+      ;;
+    --print-profiles)
+      # Tooling helper for CI: print "profile<TAB>modules" for every profile.
+      for module in $PROFILES; do
+        printf '%s\t%s\n' "$module" "$(profile_modules "$module")"
       done
       exit 0
       ;;

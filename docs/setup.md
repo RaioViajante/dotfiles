@@ -65,6 +65,37 @@ software, and `apps` has no configuration); a selection with nothing to do at
 all fails. `--packages-only` leaves existing shell files untouched; the AI CLI
 step also reverts any edit a vendor installer makes to them.
 
+## Profiles
+
+A profile is an optional shortcut for a list of modules. It adds no package of
+its own, so every mode and option behaves exactly as with the modules named by
+hand; nothing changes unless you pass `--profile`.
+
+| Profile | Modules | Use it for |
+| --- | --- | --- |
+| `core` | `shell git` | shared essentials: terminal, prompt, Git settings |
+| `development` | `shell git dev vscode nvim ai` | a development workstation |
+| `content-creation` | `shell git content studio` | recording, editing, transcription, shortcuts |
+| `full` | every module | same as `all` |
+
+```sh
+./setup --profile content-creation
+./setup --profile development --packages-only
+./setup --no-packages --profile core
+./setup --profile core dev
+```
+
+`--profile NAME` and `--profile=NAME` are equivalent. Profiles can be repeated
+and combined with module names; repeated modules run once, in the canonical
+order. An unknown profile is an error, and `--packages-only` and
+`--no-packages` still cannot be combined. `./setup --list` prints the profiles
+with their modules. The default for `./setup` without arguments is unchanged:
+it prints the help.
+
+`apps` and `ai` are not part of `core` or `content-creation` on purpose: they
+hold personal desktop apps and AI tools. Add them by name, for example
+`./setup --profile content-creation apps`.
+
 ## Commands
 
 | Goal | Command |
@@ -80,6 +111,8 @@ step also reverts any edit a vendor installer makes to them.
 | Software and configuration of one module | `./setup nvim` |
 | Install and configuration modules together | `./setup dev vscode nvim` |
 | Complete setup | `./setup all` |
+| Content-creation workstation | `./setup --profile content-creation` |
+| Development software only | `./setup --profile development --packages-only` |
 | Preview any of the above | `./setup --dry-run --packages-only all` |
 | List modules | `./setup --list` |
 
