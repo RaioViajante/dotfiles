@@ -28,6 +28,9 @@ cd ~/.local/share/chezmoi
 ./setup --no-packages shell     # files and the default profile only
 ```
 
+`~/.zshrc` also loads `~/.config/studio/studio.zsh` when the optional
+[studio module](studio.md) has been applied; without it nothing changes.
+
 Set zsh as the login shell if it is not already (`chsh -s /bin/zsh`), then open
 a new terminal.
 

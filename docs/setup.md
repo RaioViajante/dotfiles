@@ -39,6 +39,7 @@ commands below run from that directory.
 | `git` | configuration | none | none | `~/.gitconfig`, `~/.config/git` | none |
 | `vscode` | configuration | `shared/nerd-font`, `vscode.Brewfile` | `scripts/macos/install-vscode-extensions.sh` | VS Code `settings.json` | none |
 | `nvim` | configuration | `shared/ripgrep`, `shared/node`, `shared/nerd-font`, `nvim.Brewfile` | none | `~/.config/nvim` | none |
+| `studio` | configuration | none | none | `~/.config/studio` | `scripts/macos/setup-studio.sh` |
 
 Applying configuration in the default mode also installs `shared/chezmoi`.
 `./setup --list` prints the same mapping from the script itself. Editors and
@@ -48,7 +49,7 @@ Code, Neovim or iTerm2.
 Module documentation: [desktop apps](apps.md), [development tools and
 Rust](development.md), [AI tools](ai.md), [content creation](content-creation.md),
 [shell and terminal](shell-and-terminal.md), [Git and GitHub accounts](git.md),
-[VS Code](vscode.md), [Neovim](neovim.md).
+[VS Code](vscode.md), [Neovim](neovim.md), [studio](studio.md).
 
 ## Modes
 
@@ -73,7 +74,8 @@ step also reverts any edit a vendor installer makes to them.
 | Software of several modules | `./setup --packages-only apps dev ai content` |
 | All software, no configuration | `./setup --packages-only all` |
 | Configuration of one module | `./setup --no-packages shell` |
-| Configuration of several modules | `./setup --no-packages shell git vscode nvim` |
+| Configuration of several modules | `./setup --no-packages shell git vscode nvim studio` |
+| Content-creation shortcuts and workspace | `./setup studio` |
 | All configuration, no software | `./setup --no-packages all` (skips apps, dev, ai and content) |
 | Software and configuration of one module | `./setup nvim` |
 | Install and configuration modules together | `./setup dev vscode nvim` |
@@ -98,7 +100,7 @@ step also reverts any edit a vendor installer makes to them.
    (`ai`), VS Code extensions (`vscode`).
 3. **Configuration.** `chezmoi apply --parent-dirs <targets>` applies only the
    selected modules' files from this checkout, then the configuration steps
-   run (the iTerm2 default profile for `shell`).
+   run (the iTerm2 default profile for `shell`, the workspace for `studio`).
 4. **Summary.** Each module prints its manual follow-ups. Failures are listed
    and the command exits non-zero; earlier successful parts are kept.
 

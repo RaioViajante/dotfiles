@@ -2,7 +2,8 @@
 
 The `content` module installs recording, 3D, painting, game development,
 audio/video and speech-to-text tools from `brew/content.Brewfile` plus
-Descript's official installer.
+Descript's official installer. Shell shortcuts and the local workspace for
+this work belong to the separate [`studio` module](studio.md).
 
 ## Included
 
@@ -66,7 +67,7 @@ is deliberately not declared. Grant microphone access when macOS asks.
 
 `whisper-cli` needs a ggml model file. Models are hundreds of megabytes to
 several gigabytes, so `setup` never downloads one. Keep them outside Git and
-outside iCloud Drive, for example in:
+outside iCloud Drive, in the directory the `studio` shortcuts read by default:
 
 ```sh
 mkdir -p ~/.local/share/whisper-cpp/models
@@ -78,7 +79,8 @@ shasum -a 256 ~/.local/share/whisper-cpp/models/ggml-medium.bin
 The `ggml-medium.bin` used for the first episode has SHA-256
 `6c14d5adee5f86394037b4e4e8b59f1673b6cee10e3cf0b11bbdbee79c156208`; compare
 your download with it, or with the checksum published by the whisper.cpp
-project, before relying on it.
+project, before relying on it. The `transcribe` shortcut then works as
+described in [studio.md](studio.md#shortcuts).
 
 ## Authentication
 

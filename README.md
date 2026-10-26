@@ -7,18 +7,19 @@ for building software and making things.
 
 #### what's inside
 
-eight modules, picked one by one. the first four install software; the
-other four apply configuration and bring the software it needs.
+nine modules, picked one by one. the first four install software; the
+other five apply configuration and bring the software they need.
 
 ```
 apps     desktop apps, Proton
 dev      runtimes, CLIs, Rust
 ai       AI apps and CLIs
-content  OBS, Blender, Descript, CapCut
+content  OBS, Blender, Descript, whisper.cpp
 shell    zsh, Starship, iTerm2
 git      Git settings, identities
 vscode   VS Code and extensions
 nvim     Neovim and language servers
+studio   content shortcuts, ~/Studio
 ```
 
 #### set it up
@@ -68,6 +69,7 @@ Mac has not been run end to end. the full guide is in
 <a href="docs/ai.md">ai.md</a> ················· AI apps, CLIs
 <a href="docs/content-creation.md">content-creation.md</a> ··· OBS, Descript, CapCut
 <a href="docs/shell-and-terminal.md">shell-and-terminal.md</a> · zsh, iTerm2
+<a href="docs/studio.md">studio.md</a> ············· shortcuts, workspace
 <a href="docs/git.md">git.md</a> ················ identity, SSH
 <a href="docs/vscode.md">vscode.md</a> ············· extensions
 <a href="docs/neovim.md">neovim.md</a> ············· plugins, LSP

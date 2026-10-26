@@ -10,7 +10,7 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$REPO/scripts/lib.sh"
 
 INSTALL_MODULES="apps dev ai content"
-CONFIG_MODULES="shell git vscode nvim"
+CONFIG_MODULES="shell git vscode nvim studio"
 
 usage() {
   cat <<'EOF'
@@ -27,6 +27,7 @@ Configuration modules (their software, then the managed dotfiles):
   git       Git settings and per-account commit identities (no software)
   vscode    VS Code, its extensions and settings
   nvim      Neovim, its dependencies and configuration
+  studio    Content-creation shortcuts and the local ~/Studio workspace (no software)
 
   all       Every module above
 
@@ -80,6 +81,7 @@ module_targets() {
     git) printf '%s\n' .gitconfig .config/git ;;
     vscode) printf '%s\n' "Library/Application Support/Code/User/settings.json" ;;
     nvim) printf '%s\n' .config/nvim ;;
+    studio) printf '%s\n' .config/studio ;;
   esac
 }
 
@@ -99,6 +101,7 @@ module_steps() {
 module_config_steps() {
   case "$1" in
     shell) echo "scripts/macos/set-iterm-default-profile.sh" ;;
+    studio) echo "scripts/macos/setup-studio.sh" ;;
   esac
 }
 
@@ -108,11 +111,12 @@ module_notes() {
     apps) echo "Sign in to each app. Install TeamSpeak 6 and Proton Authenticator by hand (docs/apps.md)." ;;
     dev) echo "Register the JDKs (scripts/macos/register-jdks.sh) and, after an App Store sign-in, run scripts/macos/install-mas-apps.sh for Xcode (docs/development.md)." ;;
     ai) echo "Sign in to each AI app and CLI interactively; install the Kimi desktop app by hand (docs/ai.md)." ;;
-    content) echo "Open each app once to finish its first-run setup (docs/content-creation.md)." ;;
+    content) echo "Open each app once to finish its first-run setup; install Shure MOTIV Mix and a Whisper model by hand (docs/content-creation.md)." ;;
     shell) echo "Open a new terminal to load the shell configuration (docs/shell-and-terminal.md)." ;;
     git) echo "Set your identity in ~/.config/git/identity.gitconfig and the per-account files; SSH keys and sign-in are separate steps (docs/git.md)." ;;
     vscode) echo "Restart VS Code to load the settings (docs/vscode.md)." ;;
     nvim) echo "Start nvim once to install plugins, parsers and language servers (docs/neovim.md)." ;;
+    studio) echo "Open a new terminal for the shortcuts; ~/Studio/raioviajando appears once the Raioviajando folder exists in iCloud Drive (docs/studio.md)." ;;
   esac
 }
 
