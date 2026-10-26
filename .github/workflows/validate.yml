@@ -41,12 +41,15 @@ jobs:
             dot_config/zsh/functions.zsh
             dot_config/zsh/dev.zsh
             dot_config/zsh/tools.zsh
+            dot_config/studio/studio.zsh
             manifests/vscode-extensions.txt
             scripts/lib.sh
             scripts/check-secrets.sh
             scripts/check-modules.sh
             scripts/check-docs.sh
+            scripts/check-studio.sh
             scripts/macos/apply-preferences.sh
+            scripts/macos/setup-studio.sh
             scripts/macos/macos-defaults.sh
             scripts/macos/register-jdks.sh
             scripts/macos/install-vscode-extensions.sh
@@ -61,7 +64,7 @@ jobs:
         run: |
           set -euo pipefail
           # Plain Zsh modules.
-          for file in dot_zshrc dot_zprofile dot_config/zsh/*.zsh; do
+          for file in dot_zshrc dot_zprofile dot_config/zsh/*.zsh dot_config/studio/*.zsh; do
             zsh -n "$file"
           done
           # Setup command, helper scripts and any templated run scripts.
@@ -86,7 +89,8 @@ jobs:
           set -euo pipefail
           # SC1091: library path is resolved at runtime from ${BASH_SOURCE}.
           shellcheck -x -e SC1091 setup scripts/lib.sh scripts/check-secrets.sh \
-            scripts/check-modules.sh scripts/check-docs.sh scripts/macos/*.sh
+            scripts/check-modules.sh scripts/check-docs.sh scripts/check-studio.sh \
+            scripts/macos/*.sh
 
       - name: Validate chezmoi templates and manifests
         shell: bash
@@ -132,6 +136,62 @@ jobs:
             echo "--no-packages must not install software" >&2
             exit 1
           fi
+          # Profiles expand to explicit modules, keep every mode and add no
+          # packages of their own.
+          expected_profiles="$(printf '%s\t%s\n' \
+            core 'shell git' \
+            development 'shell git dev vscode nvim ai' \
+            content-creation 'shell git content studio' \
+            full 'apps dev ai content shell git vscode nvim studio')"
+          test "$(./setup --print-profiles)" = "$expected_profiles" || {
+            echo "profile definitions changed unexpectedly" >&2
+            exit 1
+          }
+          for profile in core development content-creation full; do
+            ./setup --dry-run --profile "$profile" >/dev/null 2>&1 ||
+              { echo "profile $profile must be accepted" >&2; exit 1; }
+            ./setup --dry-run --profile="$profile" >/dev/null 2>&1 ||
+              { echo "--profile=$profile must be accepted" >&2; exit 1; }
+          done
+          for bad in "--profile" "--profile bogus" "--profile core --packages-only --no-packages"; do
+            # shellcheck disable=SC2086 # plain words
+            if ./setup --dry-run $bad >/dev/null 2>&1; then
+              echo "must be rejected: ./setup $bad" >&2
+              exit 1
+            fi
+          done
+          # A profile selects the same plan as its modules written out.
+          norm() { sed 's/\x1b\[[0-9;]*m//g'; }
+          test "$(./setup --dry-run --profile content-creation 2>&1 | norm)" = \
+               "$(./setup --dry-run shell git content studio 2>&1 | norm)" || {
+            echo "profile plan differs from its explicit modules" >&2
+            exit 1
+          }
+          plan="$(./setup --dry-run --profile content-creation --packages-only 2>&1)"
+          if grep -qE 'applying configuration|chezmoi apply|setup-studio' <<<"$plan"; then
+            echo "--packages-only must not apply configuration with a profile" >&2
+            exit 1
+          fi
+          grep -q 'would install: brew "whisper.cpp"' <<<"$plan" || {
+            echo "content-creation must install whisper.cpp" >&2
+            exit 1
+          }
+          plan="$(./setup --dry-run --profile full --no-packages 2>&1)"
+          if grep -qE 'would install|install-ai-clis|setup-rust|install-vscode-extensions' <<<"$plan"; then
+            echo "--no-packages must not install software with a profile" >&2
+            exit 1
+          fi
+          # The studio module has no software of its own.
+          if ./setup --dry-run --packages-only studio >/dev/null 2>&1; then
+            echo "--packages-only studio has nothing to do and must fail" >&2
+            exit 1
+          fi
+
+      - name: Validate the studio module
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./scripts/check-studio.sh
 
       - name: Validate documentation
         shell: bash
@@ -212,6 +272,7 @@ jobs:
             .zshrc .zprofile .gitconfig .config/git/local.gitconfig
             .config/zsh/paths.zsh .config/zsh/dev.zsh
             .config/starship.toml .config/nvim/init.lua
+            .config/studio/studio.zsh
             'Library/Application Support/Code/User/settings.json'
             'Library/Application Support/iTerm2/DynamicProfiles/raioviajante.json'
           )
