@@ -9,7 +9,7 @@ folder in iCloud Drive.
 
 | Part | Where | Behavior |
 | --- | --- | --- |
-| Shell shortcuts | `~/.config/studio/studio.zsh` | managed by chezmoi; `~/.zshrc` loads it only when the file exists |
+| Shell shortcuts | `~/.config/studio/studio.zsh` | managed by chezmoi; loaded by the hook the `shell` module puts in `~/.zshrc` (see [Install](#install)) |
 | Local workspace | `~/Studio` | missing directories are created; existing ones are never touched |
 | iCloud link | `~/Studio/raioviajando` | symlink to the Raioviajando folder, created only when that folder exists |
 
@@ -24,14 +24,23 @@ synced. Nothing assumes a user name: every path starts from `$HOME`.
 
 ```sh
 cd ~/.local/share/chezmoi
-./setup studio
+./setup --no-packages shell studio    # shortcuts and workspace, shortcuts active
+./setup --profile content-creation    # shell, git, content and studio together
 ```
 
-`./setup --no-packages studio` does the same (the module has no software).
-With `--packages-only`, a selection that contains only `studio` has nothing to
-do and fails, like `git`.
-The tools themselves come from `./setup content`. Open a new terminal to load
-the shortcuts.
+The shortcuts are loaded by `~/.zshrc`, and `~/.zshrc` belongs to the `shell`
+module, not to `studio`. A hook there sources `~/.config/studio/studio.zsh`
+when that file exists. So `./setup studio` on its own applies the shortcuts file
+and prepares the workspace, but nothing loads the file until the `shell` module
+has applied the current `~/.zshrc`: on a fresh machine, or on one set up before
+this module existed, the shortcuts stay unavailable. `studio` never edits
+`~/.zshrc`; `setup-studio.sh` only reads it and warns when the hook is missing.
+Without the `shell` module, source the file yourself from your own startup file.
+
+`studio` has no software, so `--no-packages` makes no difference to it. With
+`--packages-only`, a selection that contains only `studio` has nothing to do and
+fails, like `git`. The tools themselves come from `./setup content`. After the
+`shell` module is applied, open a new terminal to load the shortcuts.
 
 ## Workspace layout
 

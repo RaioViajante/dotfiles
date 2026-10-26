@@ -41,6 +41,10 @@ commands below run from that directory.
 | `nvim` | configuration | `shared/ripgrep`, `shared/node`, `shared/nerd-font`, `nvim.Brewfile` | none | `~/.config/nvim` | none |
 | `studio` | configuration | none | none | `~/.config/studio` | `scripts/macos/setup-studio.sh` |
 
+The `studio` shortcuts are loaded by the hook in `~/.zshrc`, which the `shell`
+module owns, so activate them with `./setup --no-packages shell studio` (the
+`content-creation` profile includes both); see [studio.md](studio.md#install).
+
 Applying configuration in the default mode also installs `shared/chezmoi`.
 `./setup --list` prints the same mapping from the script itself. Editors and
 the terminal belong to their configuration modules: `dev` does not install VS
