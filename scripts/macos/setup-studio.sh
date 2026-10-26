@@ -6,8 +6,8 @@
 #   - links ~/Studio/raioviajando to the Raioviajando folder in iCloud Drive
 #     only when that folder exists and nothing occupies the link path.
 # It never creates or changes anything inside iCloud Drive. Missing iCloud Drive
-# is a warning, not an error. STUDIO_DIR and RAIOVIAJANDO_DIR override the
-# default locations.
+# is a warning, not an error. STUDIO_DIR and RAIOVIAJANDO_DIR (absolute paths)
+# override the default locations.
 
 set -euo pipefail
 
@@ -18,6 +18,11 @@ refuse_root
 
 studio_dir="${STUDIO_DIR:-$HOME/Studio}"
 raio_dir="${RAIOVIAJANDO_DIR:-$HOME/Library/Mobile Documents/com~apple~CloudDocs/Raioviajando}"
+
+# A relative link target would resolve against the link's own directory and
+# break, so overrides must be absolute.
+[[ "$studio_dir" == /* && "$raio_dir" == /* ]] ||
+  die "STUDIO_DIR and RAIOVIAJANDO_DIR must be absolute paths"
 
 dirs=(
   videos

@@ -91,6 +91,14 @@ check "override: layout in custom dir" test -d "$tmp/custom studio/videos"
 check "override: link to custom folder" test "$(readlink "$tmp/custom studio/raioviajando")" = "$tmp/custom raio"
 check "override: default dir untouched" absent "$h/Studio"
 
+# 6b. Relative overrides are rejected: a relative link target would be broken.
+h="$(newhome relative)"
+mkdir -p "$tmp/relative/cwd/rel-raio"
+check "relative: RAIOVIAJANDO_DIR rejected" bash -c 'cd "$1/cwd" && ! HOME="$2" RAIOVIAJANDO_DIR=rel-raio "$3"' _ "$tmp/relative" "$h" "$script"
+check "relative: STUDIO_DIR rejected" bash -c 'cd "$1/cwd" && ! HOME="$2" STUDIO_DIR=rel-studio "$3"' _ "$tmp/relative" "$h" "$script"
+check "relative: nothing created" absent "$h/Studio"
+check "relative: no stray directory" absent "$tmp/relative/cwd/rel-studio"
+
 # 7. Shell shortcuts without iCloud Drive: load silently, fail with a message.
 zrun() { HOME="$1" zsh -f -c 'source "$1"; eval "$2"' _ "$zshfile" "$2"; }
 zfails() { ! zrun "$@"; }

@@ -85,7 +85,9 @@ shell still starts normally and a command prints what is missing, for example
 | `WHISPER_LANG` | `auto` | language passed to `whisper-cli` |
 
 Set them before the shell loads the module, for example in `~/.zprofile`. The
-setup script reads `STUDIO_DIR` and `RAIOVIAJANDO_DIR` too.
+setup script reads `STUDIO_DIR` and `RAIOVIAJANDO_DIR` too; both must be
+absolute paths, and the script refuses relative ones because a relative link
+target would be broken.
 
 ## Workflows
 

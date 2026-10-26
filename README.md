@@ -14,7 +14,7 @@ other five apply configuration and bring the software they need.
 apps     desktop apps, Proton
 dev      runtimes, CLIs, Rust
 ai       AI apps and CLIs
-content  OBS, Blender, Descript, whisper.cpp
+content  OBS, Blender, Descript, CapCut, whisper.cpp
 shell    zsh, Starship, iTerm2
 git      Git settings, identities
 vscode   VS Code and extensions
