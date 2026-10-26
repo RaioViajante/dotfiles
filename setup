@@ -138,7 +138,7 @@ module_notes() {
     git) echo "Set your identity in ~/.config/git/identity.gitconfig and the per-account files; SSH keys and sign-in are separate steps (docs/git.md)." ;;
     vscode) echo "Restart VS Code to load the settings (docs/vscode.md)." ;;
     nvim) echo "Start nvim once to install plugins, parsers and language servers (docs/neovim.md)." ;;
-    studio) echo "Open a new terminal for the shortcuts; ~/Studio/raioviajando appears once the Raioviajando folder exists in iCloud Drive (docs/studio.md)." ;;
+    studio) echo "The shortcuts are loaded by ~/.zshrc, which the shell module owns: run './setup --no-packages shell studio' (or use --profile content-creation) if it is not applied yet, then open a new terminal. ~/Studio/raioviajando appears once the Raioviajando folder exists in iCloud Drive (docs/studio.md)." ;;
   esac
 }
 

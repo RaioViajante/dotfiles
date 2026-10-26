@@ -54,7 +54,10 @@ sfx() {
   local dir="$RAIOVIAJANDO_DIR/_Library/sfx"
   (( $# > 0 )) || { print -u2 'usage: sfx <term>'; return 2; }
   [[ -r "$dir/manifest.csv" ]] || { print -u2 "sound-effects manifest not found: $dir/manifest.csv"; return 1; }
-  grep -iF -- "$*" "$dir/manifest.csv" | grep -v '^id,' | awk -F, -v dir="$dir" '{ print dir "/" $2 }'
+  # The directory goes through the environment: awk -v would interpret
+  # backslash sequences in it.
+  grep -iF -- "$*" "$dir/manifest.csv" | grep -v '^id,' |
+    SFX_DIR="$dir" awk -F, '{ print ENVIRON["SFX_DIR"] "/" $2 }'
 }
 
 # newvideo <slug>: copy the video template to a new dated project and enter it.
