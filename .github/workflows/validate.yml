@@ -279,3 +279,11 @@ jobs:
           for target in "${expected[@]}"; do
             test -f "$dest/$target" || { echo "Missing applied target: $target" >&2; exit 1; }
           done
+          # The applied ~/.zshrc must load the studio shortcuts in an
+          # interactive shell (scripts/check-studio.sh covers the rest).
+          for name in studio raio rlib ep sfx newvideo transcribe; do
+            test "$(HOME="$dest" zsh -i -c "whence -w $name" 2>/dev/null)" = "$name: function" || {
+              echo "studio shortcut not loaded by the applied .zshrc: $name" >&2
+              exit 1
+            }
+          done
