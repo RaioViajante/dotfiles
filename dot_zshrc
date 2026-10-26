@@ -8,3 +8,6 @@ for config_file in options paths completion aliases functions dev tools; do
   source "$ZSH_CONFIG_DIR/${config_file}.zsh"
 done
 unset config_file
+
+# Optional studio module (content-creation shortcuts): loaded only when applied.
+[[ -r "$HOME/.config/studio/studio.zsh" ]] && source "$HOME/.config/studio/studio.zsh"

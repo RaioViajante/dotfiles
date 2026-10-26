@@ -39,6 +39,11 @@ commands below run from that directory.
 | `git` | configuration | none | none | `~/.gitconfig`, `~/.config/git` | none |
 | `vscode` | configuration | `shared/nerd-font`, `vscode.Brewfile` | `scripts/macos/install-vscode-extensions.sh` | VS Code `settings.json` | none |
 | `nvim` | configuration | `shared/ripgrep`, `shared/node`, `shared/nerd-font`, `nvim.Brewfile` | none | `~/.config/nvim` | none |
+| `studio` | configuration | none | none | `~/.config/studio` | `scripts/macos/setup-studio.sh` |
+
+The `studio` shortcuts are loaded by the hook in `~/.zshrc`, which the `shell`
+module owns, so activate them with `./setup --no-packages shell studio` (the
+`content-creation` profile includes both); see [studio.md](studio.md#install).
 
 Applying configuration in the default mode also installs `shared/chezmoi`.
 `./setup --list` prints the same mapping from the script itself. Editors and
@@ -48,7 +53,7 @@ Code, Neovim or iTerm2.
 Module documentation: [desktop apps](apps.md), [development tools and
 Rust](development.md), [AI tools](ai.md), [content creation](content-creation.md),
 [shell and terminal](shell-and-terminal.md), [Git and GitHub accounts](git.md),
-[VS Code](vscode.md), [Neovim](neovim.md).
+[VS Code](vscode.md), [Neovim](neovim.md), [studio](studio.md).
 
 ## Modes
 
@@ -64,6 +69,37 @@ software, and `apps` has no configuration); a selection with nothing to do at
 all fails. `--packages-only` leaves existing shell files untouched; the AI CLI
 step also reverts any edit a vendor installer makes to them.
 
+## Profiles
+
+A profile is an optional shortcut for a list of modules. It adds no package of
+its own, so every mode and option behaves exactly as with the modules named by
+hand; nothing changes unless you pass `--profile`.
+
+| Profile | Modules | Use it for |
+| --- | --- | --- |
+| `core` | `shell git` | shared essentials: terminal, prompt, Git settings |
+| `development` | `shell git dev vscode nvim ai` | a development workstation |
+| `content-creation` | `shell git content studio` | recording, editing, transcription, shortcuts |
+| `full` | every module | same as `all` |
+
+```sh
+./setup --profile content-creation
+./setup --profile development --packages-only
+./setup --no-packages --profile core
+./setup --profile core dev
+```
+
+`--profile NAME` and `--profile=NAME` are equivalent. Profiles can be repeated
+and combined with module names; repeated modules run once, in the canonical
+order. An unknown profile is an error, and `--packages-only` and
+`--no-packages` still cannot be combined. `./setup --list` prints the profiles
+with their modules. The default for `./setup` without arguments is unchanged:
+it prints the help.
+
+`apps` and `ai` are not part of `core` or `content-creation` on purpose: they
+hold personal desktop apps and AI tools. Add them by name, for example
+`./setup --profile content-creation apps`.
+
 ## Commands
 
 | Goal | Command |
@@ -73,11 +109,14 @@ step also reverts any edit a vendor installer makes to them.
 | Software of several modules | `./setup --packages-only apps dev ai content` |
 | All software, no configuration | `./setup --packages-only all` |
 | Configuration of one module | `./setup --no-packages shell` |
-| Configuration of several modules | `./setup --no-packages shell git vscode nvim` |
+| Configuration of several modules | `./setup --no-packages shell git vscode nvim studio` |
+| Content-creation shortcuts and workspace | `./setup studio` |
 | All configuration, no software | `./setup --no-packages all` (skips apps, dev, ai and content) |
 | Software and configuration of one module | `./setup nvim` |
 | Install and configuration modules together | `./setup dev vscode nvim` |
 | Complete setup | `./setup all` |
+| Content-creation workstation | `./setup --profile content-creation` |
+| Development software only | `./setup --profile development --packages-only` |
 | Preview any of the above | `./setup --dry-run --packages-only all` |
 | List modules | `./setup --list` |
 
@@ -98,7 +137,7 @@ step also reverts any edit a vendor installer makes to them.
    (`ai`), VS Code extensions (`vscode`).
 3. **Configuration.** `chezmoi apply --parent-dirs <targets>` applies only the
    selected modules' files from this checkout, then the configuration steps
-   run (the iTerm2 default profile for `shell`).
+   run (the iTerm2 default profile for `shell`, the workspace for `studio`).
 4. **Summary.** Each module prints its manual follow-ups. Failures are listed
    and the command exits non-zero; earlier successful parts are kept.
 

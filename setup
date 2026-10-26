@@ -10,7 +10,7 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$REPO/scripts/lib.sh"
 
 INSTALL_MODULES="apps dev ai content"
-CONFIG_MODULES="shell git vscode nvim"
+CONFIG_MODULES="shell git vscode nvim studio"
 
 usage() {
   cat <<'EOF'
@@ -27,8 +27,16 @@ Configuration modules (their software, then the managed dotfiles):
   git       Git settings and per-account commit identities (no software)
   vscode    VS Code, its extensions and settings
   nvim      Neovim, its dependencies and configuration
+  studio    Content-creation shortcuts and the local ~/Studio workspace (no software)
 
   all       Every module above
+
+Profiles (optional shortcuts that expand to the modules listed; combine them
+with modules and with the modes below):
+      --profile NAME   core              shell git
+                       development       shell git dev vscode nvim ai
+                       content-creation  shell git content studio
+                       full              every module, same as 'all'
 
 Modes (default: software and configuration):
       --packages-only  Software only: packages, Rust toolchain, AI CLIs and
@@ -49,9 +57,24 @@ Examples:
   setup --no-packages shell git    Shell and Git configuration only
   setup apps ai content            Several install modules
   setup all                        Complete setup
+  setup --profile content-creation Content-creation workstation
+  setup --profile development --packages-only   Development software only
 
 Nothing is installed or applied without an explicit MODULE. See docs/setup.md.
 EOF
+}
+
+PROFILES="core development content-creation full"
+
+# Modules a profile expands to. A profile only selects modules: it adds no
+# package of its own and the modes behave exactly as with explicit modules.
+profile_modules() {
+  case "$1" in
+    core) echo "shell git" ;;
+    development) echo "shell git dev vscode nvim ai" ;;
+    content-creation) echo "shell git content studio" ;;
+    full) echo "$INSTALL_MODULES $CONFIG_MODULES" ;;
+  esac
 }
 
 # Software bundles a module installs, shared dependencies first.
@@ -80,6 +103,7 @@ module_targets() {
     git) printf '%s\n' .gitconfig .config/git ;;
     vscode) printf '%s\n' "Library/Application Support/Code/User/settings.json" ;;
     nvim) printf '%s\n' .config/nvim ;;
+    studio) printf '%s\n' .config/studio ;;
   esac
 }
 
@@ -99,6 +123,7 @@ module_steps() {
 module_config_steps() {
   case "$1" in
     shell) echo "scripts/macos/set-iterm-default-profile.sh" ;;
+    studio) echo "scripts/macos/setup-studio.sh" ;;
   esac
 }
 
@@ -108,11 +133,12 @@ module_notes() {
     apps) echo "Sign in to each app. Install TeamSpeak 6 and Proton Authenticator by hand (docs/apps.md)." ;;
     dev) echo "Register the JDKs (scripts/macos/register-jdks.sh) and, after an App Store sign-in, run scripts/macos/install-mas-apps.sh for Xcode (docs/development.md)." ;;
     ai) echo "Sign in to each AI app and CLI interactively; install the Kimi desktop app by hand (docs/ai.md)." ;;
-    content) echo "Open each app once to finish its first-run setup (docs/content-creation.md)." ;;
+    content) echo "Open each app once to finish its first-run setup; install Shure MOTIV Mix and a Whisper model by hand (docs/content-creation.md)." ;;
     shell) echo "Open a new terminal to load the shell configuration (docs/shell-and-terminal.md)." ;;
     git) echo "Set your identity in ~/.config/git/identity.gitconfig and the per-account files; SSH keys and sign-in are separate steps (docs/git.md)." ;;
     vscode) echo "Restart VS Code to load the settings (docs/vscode.md)." ;;
     nvim) echo "Start nvim once to install plugins, parsers and language servers (docs/neovim.md)." ;;
+    studio) echo "The shortcuts are loaded by ~/.zshrc, which the shell module owns: run './setup --no-packages shell studio' (or use --profile content-creation) if it is not applied yet, then open a new terminal. ~/Studio/raioviajando appears once the Raioviajando folder exists in iCloud Drive (docs/studio.md)." ;;
   esac
 }
 
@@ -139,6 +165,10 @@ list_modules() {
     done
   done
   printf 'applying configuration also installs: %s\n' "$CONFIG_BUNDLE"
+  printf 'profiles:\n'
+  for module in $PROFILES; do
+    printf '  %-17s %s\n' "$module" "$(profile_modules "$module")"
+  done
 }
 
 dry_run=0
@@ -146,11 +176,22 @@ packages_only=0
 config_only=0
 selected=""
 
+add_profile() {
+  contains "$PROFILES" "$1" || { usage >&2; die "unknown profile: $1 (choose from: $PROFILES)"; }
+  selected="$selected $(profile_modules "$1")"
+}
+
 while (( $# > 0 )); do
   case "$1" in
     -h | --help) usage; exit 0 ;;
     -l | --list) list_modules; exit 0 ;;
     -n | --dry-run) dry_run=1 ;;
+    --profile=*) add_profile "${1#--profile=}" ;;
+    --profile)
+      (( $# >= 2 )) || { usage >&2; die "--profile needs a name (choose from: $PROFILES)"; }
+      add_profile "$2"
+      shift
+      ;;
     --packages-only) packages_only=1 ;;
     --no-packages) config_only=1 ;;
     --print-targets)
@@ -158,6 +199,13 @@ while (( $# > 0 )); do
       # configuration module.
       for module in $CONFIG_MODULES; do
         module_targets "$module" | sed "s/^/$module$(printf '\t')/"
+      done
+      exit 0
+      ;;
+    --print-profiles)
+      # Tooling helper for CI: print "profile<TAB>modules" for every profile.
+      for module in $PROFILES; do
+        printf '%s\t%s\n' "$module" "$(profile_modules "$module")"
       done
       exit 0
       ;;
